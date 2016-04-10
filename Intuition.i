@@ -40,12 +40,12 @@ NewWindow_MaxWidth	=42
 NewWindow_MaxHeight	=44
 
 **** Screen
-Screen_WBorTop	=35
-Screen_WBorL	=36
-Screen_WBorR	=37
-Screen_WBorBot	=38
-Screen_Font	=40
-Screen_Viewport	=44
+Screen_WBorTop		=35
+Screen_WBorL		=36
+Screen_WBorR		=37
+Screen_WBorBot		=38
+Screen_Font		=40
+Screen_Viewport		=44
 
 **** Window
 Window_RastPort		=50
