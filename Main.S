@@ -21,8 +21,8 @@ BorderBottom:	ds.b 1
 ****************
 
 	SECTION Text,CODE
-; in the Start routine we initialize our libraries then call into the
-; app
+* in the Start routine we initialize our libraries
+* then jump into Main
 Start:
 .initIntui:
 	lea.l IntuiName,a1
@@ -36,6 +36,7 @@ Start:
 	tst.l d0		; success?
 	beq.s .closeIntui
 	move.l d0,GfxBase
+; libraries loaded, start program
 	bsr.s Main
 .closeGfx:
 	move.l GfxBase,a1	; a1=lib-to-close=gfx
@@ -54,7 +55,7 @@ InitLib:
 	jsr _LoadLibrary(a6)	; d0=lib
 	rts
 ****
-; we assume that Intuition and the Gfx lib have been loaded
+* assumes that Intuition and the Gfx lib have been loaded
 Main:
 .openScreen:
 	move.l IntuiBase,a6
