@@ -407,7 +407,7 @@ ExitMenuItem:
 ExitMenuItemWidth:
 	dc.w 80				; TODO: dynamic?
 	dc.w 10				; height
-	dc.w ITEMTEXT!COMMSEQ!ITEMENABLED
+	dc.w ITEMTEXT!COMMSEQ!ITEMENABLED!HIGHCOMP
 	dc.l 0				; mutual exclusion
 	dc.l ExitTxt
 	dc.l 0				; different highlighted text
