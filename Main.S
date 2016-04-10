@@ -1,4 +1,4 @@
-	INCDIR MyData:FracIDE/
+	INCDIR Frac:FracIDE/
 	INCLUDE Exec.i
 	INCLUDE Graphics.i
 	INCLUDE Intuition.i
