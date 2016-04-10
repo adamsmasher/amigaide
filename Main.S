@@ -64,11 +64,8 @@ Main:
 	tst.l d0		; success?
 	beq.s .done
 	move.l d0,ScrP
-	bsr.s InitBorderInfo
-	bsr.w InitPal
-.initWinDefs:
-	bsr.w InsScrP2WinDefs
-	bsr.w AddBor2WinDefs
+; now that the screen is opened, set it up and install it into the win cfs
+	bsr.s SetupScr
 .openProjWin:
 	move.l IntuiBase,a6
 	lea.l ProjWinDef,a0
@@ -97,6 +94,13 @@ Main:
 	move.l ScrP,a0
 	jsr _CloseScreen(a6)
 .done:	rts
+****
+SetupScr:
+	bsr.s InitBorderInfo
+	bsr.s InitPal
+	bsr.s InsScrP2WinDefs
+	bsr.w AddBor2NewWins
+	rts
 ****
 InitBorderInfo:
 	move.l ScrP,a0
@@ -128,43 +132,36 @@ InitPal:
 	movem.l (sp)+,d2-d4/a2-a3
 	rts
 ****
-; TODO: merge the following two routines?
 InsScrP2WinDefs:
-	; TODO: iterate thru all WinDefs
 	move.l ScrP,d0
-	move.l d0,PalWinScrP
-	move.l d0,SprWinScrP
-	move.l d0,ProjWinScrP
+	lea.l AllNewWins,a0
+	moveq #NUM_OF_NEWWINS-1,d1
+.loop:	move.l (a0)+,a1
+	move.l d0,NewWindow_Screen(a1)
+	dbra d1,.loop
 	rts
 ****
-AddBor2WinDefs:
-	; TODO: iterate thru all WinDefs
-.pal:
-	move.w PalW,d0
-	move.w PalH,d1
+AddBor2NewWins:
+	lea.l PalWinDef,a0
+	bsr.s AddBor2NewWin
+	lea.l SprWinDef,a0
+	bsr.s AddBor2NewWin
+	rts
+****
+* a0 - ptr to NewWindow struct
+AddBor2NewWin:
+	move.w NewWindow_Width(a0),d0
+	move.w NewWindow_Height(a0),d1
 	add.b BorderLeft,d0
 	add.b BorderRight,d0
 	add.w BorderTop,d1
 	add.b BorderBottom,d1
-	move.w d0,PalW
-	move.w d0,PalMinW
-	move.w d0,PalMaxW
-	move.w d1,PalH
-	move.w d1,PalMinH
-	move.w d1,PalMaxH
-.spr:
-	move.w SprW,d0
-	move.w SprH,d1
-	add.b BorderLeft,d0
-	add.b BorderRight,d0
-	add.w BorderTop,d1
-	add.b BorderBottom,d1
-	move.w d0,SprW
-	move.w d0,SprMinW
-	move.w d0,SprMaxW
-	move.w d1,SprH
-	move.w d1,SprMinH
-	move.w d1,SprMaxW
+	move.w d0,NewWindow_Width(a0)
+	move.w d0,NewWindow_MinWidth(a0)
+	move.w d0,NewWindow_MaxWidth(a0)
+	move.w d1,NewWindow_Height(a0)
+	move.w d1,NewWindow_MinHeight(a0)
+	move.w d1,NewWindow_MaxHeight(a0)
 	rts
 ****
 InitMenus:
@@ -370,27 +367,17 @@ PROJ_HEIGHT	=200
 	EVEN
 ProjWinDef:
 	dc.w 0,0			; top, left
-ProjW:
-	dc.w PROJ_WIDTH
-ProjH:
-	dc.w PROJ_HEIGHT
+	dc.w PROJ_WIDTH,PROJ_HEIGHT	; width/height
 	dc.b -1,-1			; default pens
 	dc.l MENUPICK			; messages to listen for
 	dc.l BORDERLESS!BACKDROP
-	dc.l 0
-	dc.l 0				; TODO: what am I???
+	dc.l 0				; no gadgets
+	dc.l 0				; default checkmark
 	dc.l ProjStr
-ProjWinScrP:
 	dc.l 0				; write screen ptr here
 	dc.l 0				; no bitmap
-ProjMinW:
-	dc.w PROJ_WIDTH
-ProjMinH:
-	dc.w PROJ_HEIGHT
-ProjMaxW:
-	dc.w PROJ_WIDTH
-ProjMaxH:
-	dc.w PROJ_HEIGHT
+	dc.w PROJ_WIDTH,PROJ_HEIGHT	; min width/height
+	dc.w PROJ_WIDTH,PROJ_HEIGHT	; max width/height
 	dc.w CUSTOMSCREEN
 
 **** Proj Menu
@@ -447,28 +434,18 @@ PalTitle:
 	EVEN
 PalWinDef:
 	dc.w 20,20			; left,top
-PalW:
-	dc.w PAL_WIDTH
-PalH:
-	dc.w PAL_HEIGHT
+	dc.w PAL_WIDTH,PAL_HEIGHT	; width,height
 	dc.b -1,-1			; default pens
 	dc.l MOUSEBUTTONS!CLOSEWINDOW	; messages to listen for
 ; flags
 	dc.l WINDOWCLOSE!WINDOWDEPTH!WINDOWDRAG!RMBTRAP
 	dc.l 0				; no gadgets
-	dc.l 0				; ???
+	dc.l 0				; default checkmark imagery
 	dc.l PalTitle
-PalWinScrP:
 	dc.l 0				; write screen ptr here
 	dc.l 0				; no bitmap
-PalMinW:
-	dc.w PAL_WIDTH
-PalMinH:
-	dc.w PAL_HEIGHT
-PalMaxW:
-	dc.w PAL_WIDTH
-PalMaxH:
-	dc.w PAL_HEIGHT
+	dc.w PAL_WIDTH,PAL_HEIGHT	; min width/height
+	dc.w PAL_WIDTH,PAL_HEIGHT	; max width/height
 	dc.w CUSTOMSCREEN		; screen type
 
 **** Sprite Window
@@ -482,28 +459,24 @@ SprTitle:
 	EVEN
 SprWinDef:
 	dc.w 20,20			; left,top
-SprW:
-	dc.w SPR_WIDTH
-SprH:
-	dc.w SPR_HEIGHT
+	dc.w SPR_WIDTH,SPR_HEIGHT	; width, height
 	dc.b -1,-1			; default pens
 	dc.l MOUSEBUTTONS!CLOSEWINDOW
 	dc.l WINDOWCLOSE!WINDOWDEPTH!WINDOWDRAG!RMBTRAP
 	dc.l 0				; no gadgets
-	dc.l 0				; ???
+	dc.l 0				; default checkmark image
 	dc.l SprTitle
-SprWinScrP:
 	dc.l 0				; write screen ptr here
 	dc.l 0				; no bitmap
-SprMinW:
-	dc.w SPR_WIDTH
-SprMinH:
-	dc.w SPR_HEIGHT
-SprMaxW:
-	dc.w SPR_WIDTH
-SprMaxH:
-	dc.w SPR_HEIGHT
-	dc.w CUSTOMSCREEN
+	dc.w SPR_WIDTH,SPR_HEIGHT	; min width/height
+	dc.w SPR_WIDTH,SPR_HEIGHT	; max width/height
+	dc.w CUSTOMSCREEN		; type
+
+**** NewWindow info
+
+AllNewWins:
+	dc.l PalWinDef,SprWinDef,ProjWinDef
+NUM_OF_NEWWINS	=3
 
 **** Mark Data
 
