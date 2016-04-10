@@ -29,6 +29,16 @@ IntuiMessage_Code	=24
 IntuiMessage_MouseX	=32
 IntuiMessage_MouseY	=34
 
+**** NewWindow
+
+NewWindow_Width		=4
+NewWindow_Height	=6
+NewWindow_Screen	=30
+NewWindow_MinWidth	=38
+NewWindow_MinHeight	=40
+NewWindow_MaxWidth	=42
+NewWindow_MaxHeight	=44
+
 **** Screen
 Screen_WBorTop	=35
 Screen_WBorL	=36
