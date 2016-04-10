@@ -20,6 +20,7 @@ _OpenWindow	=-204
 _PrintIText	=-216
 _SetMenuStrip	=-264
 _ShowTitle	=-282
+_ActivateWindow	=-450
 
 ******** Structure Offsets
 

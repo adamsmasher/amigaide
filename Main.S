@@ -81,6 +81,11 @@ Main:
 	jsr _SetMenuStrip(a6)	
 	tst.l d0
 	beq.s .closeProjWin
+.activateProjWin:
+	move.l ProjWinP,a0
+	move.l IntuiBase,a6
+	jsr _ActivateWindow(a6)
+; jump into the main loop
 	bsr.w MainLoop
 .detachMenu:
 	move.l ProjWinP,a0
