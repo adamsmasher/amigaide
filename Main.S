@@ -147,9 +147,7 @@ InsScrP2WinDefs:
 	rts
 ****
 AddBor2NewWins:
-	lea.l PalWinDef,a0
-	bsr.s AddBor2NewWin
-	lea.l SprWinDef,a0
+	lea.l SprNewWin,a0
 	bsr.s AddBor2NewWin
 	rts
 ****
@@ -428,46 +426,23 @@ ProjMenuWidth:
 	dc.l ExitMenuItem
 	dc.w 0,0,0,0			; for internal use only
 
-**** Palette Window
+******** Sprite window
 
-PAL_WIDTH	=48
-PAL_HEIGHT	=(16*4)
-
-PalTitle:
-	dc.b "Palette",0
-
-	EVEN
-PalWinDef:
-	dc.w 20,20			; left,top
-	dc.w PAL_WIDTH,PAL_HEIGHT	; width,height
-	dc.b -1,-1			; default pens
-	dc.l MOUSEBUTTONS!CLOSEWINDOW	; messages to listen for
-; flags
-	dc.l WINDOWCLOSE!WINDOWDEPTH!WINDOWDRAG!RMBTRAP
-	dc.l 0				; no gadgets
-	dc.l 0				; default checkmark imagery
-	dc.l PalTitle
-	dc.l 0				; write screen ptr here
-	dc.l 0				; no bitmap
-	dc.w PAL_WIDTH,PAL_HEIGHT	; min width/height
-	dc.w PAL_WIDTH,PAL_HEIGHT	; max width/height
-	dc.w CUSTOMSCREEN		; screen type
-
-**** Sprite Window
-
-SPR_WIDTH	=16 * 2
-SPR_HEIGHT	=24 * 2
+SPR_WIDTH	=100
+SPR_HEIGHT	=100
 
 SprTitle:
 	dc.b "Sprite",0
 
+**** NewWindow
 	EVEN
-SprWinDef:
+SprNewWin:
 	dc.w 20,20			; left,top
 	dc.w SPR_WIDTH,SPR_HEIGHT	; width, height
 	dc.b -1,-1			; default pens
 	dc.l MOUSEBUTTONS!CLOSEWINDOW
 	dc.l WINDOWCLOSE!WINDOWDEPTH!WINDOWDRAG!RMBTRAP
+; TODO: in the future this will have lots of gadgets
 	dc.l 0				; no gadgets
 	dc.l 0				; default checkmark image
 	dc.l SprTitle
@@ -477,13 +452,13 @@ SprWinDef:
 	dc.w SPR_WIDTH,SPR_HEIGHT	; max width/height
 	dc.w CUSTOMSCREEN		; type
 
-**** NewWindow info
+******** NewWindow info
 
 AllNewWins:
-	dc.l PalWinDef,SprWinDef,ProjWinDef
-NUM_OF_NEWWINS	=3
+	dc.l SprNewWin,ProjWinDef
+NUM_OF_NEWWINS	=2
 
-**** Mark Data
+******** Mark Data
 
 FgMarkStr:
 	dc.b "1",0
