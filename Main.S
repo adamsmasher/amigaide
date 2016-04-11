@@ -361,7 +361,6 @@ NewSpriteTxt:
 
 ProjStr:
 	dc.b "Project",0
-PROJSTR_LEN=7
 
 ; TODO: get these from the screen
 PROJ_WIDTH	=300
