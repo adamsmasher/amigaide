@@ -344,19 +344,6 @@ ScrDef:
 	dc.l 0				; no custom gadgets
 	dc.l 0				; no custom widgets
 
-NewSpriteStr:
-	dc.b "New Sprite...",0
-
-	EVEN
-NewSpriteTxt:
-	dc.b 3,0			; pens
-	dc.b 0				; default draw mode
-	dc.b 0				; padding
-	dc.w 2,2			; left, top
-	dc.l 0				; default font
-	dc.l NewSpriteStr
-	dc.l 0				; next
-
 **** Project Window
 
 ProjStr:
@@ -382,7 +369,27 @@ ProjWinDef:
 	dc.w PROJ_WIDTH,PROJ_HEIGHT	; max width/height
 	dc.w CUSTOMSCREEN
 
-**** Proj Menu
+******** Menu Text
+
+**** Sprites Menu Text
+
+SpritesStr:
+	dc.b "Sprites",0
+
+NewSpriteStr:
+	dc.b "New Sprite...",0
+
+	EVEN
+NewSpriteTxt:
+	dc.b 0,0			; pens
+	dc.b 0				; draw mode (JAM1)
+	dc.b 0				; padding
+	dc.w 0,0			; left, top
+	dc.l 0				; default font
+	dc.l NewSpriteStr
+	dc.l 0				; next
+
+**** Proj Menu Text
 
 ExitStr:
 	dc.b "Exit",0
@@ -396,6 +403,10 @@ ExitTxt:
 	dc.l 0				; default font
 	dc.l ExitStr
 	dc.l 0				; next
+
+******** MenuItems
+
+**** Project MenuItems
 
 	EVEN
 ExitMenuItem:
@@ -413,9 +424,38 @@ ExitMenuItemWidth:
 	dc.l 0				; sub-item
 	dc.w 0				; "next select"
 
-ProjMenu:
-	; TODO: point to sprite menu
+**** Sprites MenuItems
+
+NewSpriteMenuItem:
+	dc.l 0				; next item
+	dc.w 0,0			; left, top
+	dc.w 100			; width
+	dc.w 10				; height
+	dc.w ITEMTEXT!ITEMENABLED!HIGHCOMP
+	dc.l 0				; mutual exclusion
+	dc.l NewSpriteTxt
+	dc.l 0				; no different highlighted text
+	dc.b 0				; no shortcut
+	dc.b 0				; padding
+	dc.l 0				; no subitems
+	dc.w 0				; next select
+
+******** Menus
+
+; TODO: dynamically compute the sizes/positions of things
+
+SpritesMenu:
 	dc.l 0				; next menu
+	dc.w 82,0			; left/top
+	dc.w 80				; width
+	dc.w 10				; height
+	dc.w MENUENABLED		; flags
+	dc.l SpritesStr			; text
+	dc.l NewSpriteMenuItem		; first item
+	dc.w 0,0,0,0
+
+ProjMenu:
+	dc.l SpritesMenu		; next menu
 	dc.w 2,0			; left, top
 ProjMenuWidth:
 	dc.w 80				; TOOD: dynamic?
