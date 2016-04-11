@@ -397,7 +397,7 @@ ExitStr:
 	EVEN
 ExitTxt:
 	dc.b 0,0			; pens
-	dc.b 0				; draw mode?
+	dc.b 0				; draw mode (JAM1)
 	dc.b 0				; padding
 	dc.w 0,0			; left,	top
 	dc.l 0				; default font
@@ -412,15 +412,15 @@ ExitTxt:
 ExitMenuItem:
 	dc.l 0				; next item
 	dc.w 0,0			; left, top
-ExitMenuItemWidth:
-	dc.w 80				; TODO: dynamic?
+	dc.w 80				; width
 	dc.w 10				; height
+; flags
 	dc.w ITEMTEXT!COMMSEQ!ITEMENABLED!HIGHCOMP
 	dc.l 0				; mutual exclusion
 	dc.l ExitTxt
 	dc.l 0				; different highlighted text
 	dc.b "Q"			; shortcut
-	dc.b 0				; packing
+	dc.b 0				; padding
 	dc.l 0				; sub-item
 	dc.w 0				; "next select"
 
@@ -457,12 +457,11 @@ SpritesMenu:
 ProjMenu:
 	dc.l SpritesMenu		; next menu
 	dc.w 2,0			; left, top
-ProjMenuWidth:
-	dc.w 80				; TOOD: dynamic?
+	dc.w 80				; width
 	dc.w 10				; height
 	dc.w MENUENABLED		; flags
-	dc.l ProjStr
-	dc.l ExitMenuItem
+	dc.l ProjStr			; text
+	dc.l ExitMenuItem		; first item
 	dc.w 0,0,0,0			; for internal use only
 
 ******** Sprite window
