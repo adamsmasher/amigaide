@@ -17,6 +17,7 @@ BorderTop:	ds.w 1
 BorderLeft:	ds.b 1
 BorderRight:	ds.b 1
 BorderBottom:	ds.b 1
+QuitFlag:	ds.b 1
 
 ****************
 
@@ -247,7 +248,7 @@ DrawMark:
 ****
 MainLoop:
 	movem.l d2/a2,-(sp)
-	move.l 4.w,a6			; a6=Exec
+	clr.b QuitFlag
 .getUserPort:
 	move.l ProjWinP,a0
 	move.l Window_UserPort(a0),a2	; a2=UserPort
@@ -257,22 +258,21 @@ MainLoop:
 	lsl.l d1,d2			; d2=SigMask
 .eventLoop:
 	move.l d2,d0			; d0=SigMask
+	move.l 4.w,a6
 	jsr _Wait(a6)
 	move.l a2,a0			; a0=UserPort
 	bsr.s MsgLoop
+	tst.b QuitFlag
 	beq.s .eventLoop
 .done:
 	movem.l (sp)+,d2/a2
 	rts
 ****
 ; a0 - pointer to UserPort
-; returns NZ if user clicked close
 MsgLoop:
-	movem.l d2/a2-a3,-(sp)
+	movem.l a2-a3,-(sp)
 	move.l a0,a3			; a3=UserPort
-	moveq #0,d2			; d2=close clicked?
-.loop:
-	move.l a3,a0			; a0=UserPort
+.loop:	move.l a3,a0			; a0=UserPort
 	move.l 4.w,a6			; a6=ExecBase
 	jsr _GetMsg(a6)			; d0=Msg
 	tst.l d0			; no messages left?
@@ -286,33 +286,32 @@ MsgLoop:
 	beq.s .menuPick
 	bra.s .loop
 .menuPick:
-	; TODO: fix this constant, obviously
-	cmp.w #$F800,IntuiMessage_Code(a2)
-	bne.s .loop
-.closeWindow:
-	moveq #1,d2			; d2=close clicked!
+	move.w IntuiMessage_Code(a2),d0
+	bsr.s HandleMenu
 	bra.s .loop
-;.clicked:
-;	move.w IntuiMessage_MouseY(a2),d0
-;	sub.w BorderTop,d0
-;	lsr.w #4,d0			; d0=palette entry
-;	move.w IntuiMessage_Code(a2),d1
-;	cmp.w #SELECTDOWN,d1
-;	beq.s .setFg
-;	cmp.w #MENUDOWN,d1
-;	bne.s .loop
-;	move.b d0,BgClr
-;	bra.s .doneClrSet
-;.setFg:
-;	move.b d0,FgClr
-;.doneClrSet:
-;	bsr.w RedrawPalWin
-;	bra.s .loop
-.done:
-	tst.l d2
-	movem.l (sp)+,d2/a2-a3
+.done:	movem.l (sp)+,a2-a3
+	rts
+****
+* d0 - contains Menu Number
+HandleMenu:
+	move.w d0,d1
+	and.w #$001F,d1			; d1 = Menu
+	lea.l MenuHandlers,a0
+	lsl.w #2,d1			; get index in bytes
+	move.l (a0,d1.w),a0		; a0 = Menu Handler Table
+	and.w #$07E0,d0			; isolate Menu Item
+	lsr.w #3,d0			; d0 = index in bytes
+	move.l (a0,d0.w),a0		; a0 = handler
+	jmp (a0)			; jump to routine
+****
+QuitItemHandler:
+	move.b #1,QuitFlag
+	rts
+****
+NewSpriteItemHandler:
 	rts
 ****************
+
 
 	SECTION MyData,DATA
 
@@ -463,6 +462,17 @@ ProjMenu:
 	dc.l ProjStr			; text
 	dc.l ExitMenuItem		; first item
 	dc.w 0,0,0,0			; for internal use only
+
+******** Menu Handler Tables
+
+MenuHandlers:
+	dc.l ProjMenuHandlers,SpritesMenuHandlers
+
+ProjMenuHandlers:
+	dc.l QuitItemHandler
+
+SpritesMenuHandlers:
+	dc.l NewSpriteItemHandler
 
 ******** Sprite window
 
