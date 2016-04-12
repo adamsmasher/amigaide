@@ -264,8 +264,7 @@ MainLoop:
 	bsr.s MsgLoop
 	tst.b QuitFlag
 	beq.s .eventLoop
-.done:
-	movem.l (sp)+,d2/a2
+.done:	movem.l (sp)+,d2/a2
 	rts
 ****
 ; a0 - pointer to UserPort
@@ -311,7 +310,6 @@ QuitItemHandler:
 NewSpriteItemHandler:
 	rts
 ****************
-
 
 	SECTION MyData,DATA
 
