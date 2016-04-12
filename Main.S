@@ -235,10 +235,69 @@ QuitItemHandler:
 	rts
 ****
 NewSpriteItemHandler:
+	movem.l a2-a3,-(sp)
+	bsr.s AllocNewTask		; a0 = ptr to task
+	move.l a0,a1			; a1 = ptr to task
+	lea.l SpriteMain,a2		; a2 = code
+	move.l #0,a3			; no special exit code
+	move.l 4.w,a6
+	jsr _AddTask(a6)
+	movem.l (sp)+,a2-a3
+	rts
+****
+* returns in a0 ptr to new Task
+AllocNewTask:
+	movem.l a2-a3,-(sp)
+	lea.l TaskMemList,a0
+	move.l 4.w,a6			; a6=Exec
+	jsr _AllocEntry(a6)
+	move.l d0,a2			; a2=memory list
+	move.l MemList_ME(a2),a3	; a3=new Task
+.initStack:
+; d0 = ptr to stack
+	move.l (MemList_ME+MEMENTRY_SIZE)(a2),d0
+	move.l d0,Task_SPLower(a3)
+	add.l #4096,d0			; d0 = top of stack
+	move.l d0,Task_SPUpper(a3)
+	move.l d0,Task_SPReg(a3)
+.initNode:
+	move.b #NT_TASK,Node_Type(a3)
+	clr.b Node_Pri(a3)
+	move.l #SpritesStr,Node_Name(a3)
+.initList:
+	lea.l Task_MemEntry(a3),a0
+	bsr.s NewList
+	move.l a2,a1			; a1=memory list
+	move.l 4.w,a6
+	jsr _AddHead(a6)
+.done:	move.l a3,a0			; a0 = new Task
+	movem.l (sp)+,a2-a3
+	rts
+****
+* a0 - points to uninitialied List
+* returns same, now initialized List in a0
+NewList:
+	move.l a0,List_Head(a0)
+	addq.l #4,List_Head(a0)		; head now points to tail
+	clr.l List_Tail(a0)
+	move.l a0,List_TailPred(a0)	; tailpred points to head
+	rts
+****
+SpriteMain:
 	rts
 ****************
 
 	SECTION MyData,DATA
+
+TaskMemList:
+	dcb.b NODE_SIZE,0		; no node info
+	dc.w 2				; number of entries
+; entry 1 - the task
+	dc.l MEMF_PUBLIC!MEMF_CLEAR	; public memory, zeroed out
+	dc.l TASK_SIZE
+; entry 2 - the stack
+	dc.l MEMF_CLEAR			; private memory, zeroed out
+	dc.l 4096			; 4k stack
 
 IntuiName:
 	dc.b "intuition.library",0
