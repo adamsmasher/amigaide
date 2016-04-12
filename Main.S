@@ -3,6 +3,8 @@
 	INCLUDE Graphics.i
 	INCLUDE Intuition.i
 
+	INCLUDE SpriteEditor.S
+
 	SECTION Globals,BSS
 ScrP:		ds.l 1
 ProjWinP:	ds.l 1
@@ -278,9 +280,6 @@ NewList:
 	addq.l #4,List_Head(a0)		; head now points to tail
 	clr.l List_Tail(a0)
 	move.l a0,List_TailPred(a0)	; tailpred points to head
-	rts
-****
-SpriteMain:
 	rts
 ****************
 
