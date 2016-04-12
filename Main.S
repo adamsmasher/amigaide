@@ -168,6 +168,8 @@ AddBor2NewWin:
 	move.w d1,NewWindow_MaxHeight(a0)
 	rts
 ****
+* This is where we'll dynamically size the menus, should we ever get around
+* to that
 InitMenus:
 	rts
 ****
