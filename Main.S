@@ -10,9 +10,6 @@ PalWinP:	ds.l 1
 SprWinP:	ds.l 1
 IntuiBase:	ds.l 1
 GfxBase:	ds.l 1
-FgClr:		ds.b 1
-BgClr:		ds.b 1
-	EVEN
 BorderTop:	ds.w 1
 BorderLeft:	ds.b 1
 BorderRight:	ds.b 1
@@ -458,57 +455,8 @@ ProjMenuHandlers:
 SpritesMenuHandlers:
 	dc.l NewSpriteItemHandler
 
-******** Sprite window
-
-SPR_WIDTH	=100
-SPR_HEIGHT	=100
-
-SprTitle:
-	dc.b "Sprite",0
-
-**** NewWindow
-	EVEN
-SprNewWin:
-	dc.w 20,20			; left,top
-	dc.w SPR_WIDTH,SPR_HEIGHT	; width, height
-	dc.b -1,-1			; default pens
-	dc.l MOUSEBUTTONS!CLOSEWINDOW
-	dc.l WINDOWCLOSE!WINDOWDEPTH!WINDOWDRAG!RMBTRAP
-; TODO: in the future this will have lots of gadgets
-	dc.l 0				; no gadgets
-	dc.l 0				; default checkmark image
-	dc.l SprTitle
-	dc.l 0				; write screen ptr here
-	dc.l 0				; no bitmap
-	dc.w SPR_WIDTH,SPR_HEIGHT	; min width/height
-	dc.w SPR_WIDTH,SPR_HEIGHT	; max width/height
-	dc.w CUSTOMSCREEN		; type
-
 ******** NewWindow info
 
 AllNewWins:
 	dc.l SprNewWin,ProjNewWin
 NUM_OF_NEWWINS	=2
-
-******** Mark Data
-
-FgMarkStr:
-	dc.b "1",0
-
-BgMarkStr:
-	dc.b "2",0
-
-	EVEN
-MarkTxt:
-MarkFPen:
-	dc.b 0				; front (fill in)
-MarkBPen:
-	dc.b 0				; back (fill in)
-	dc.b 0				; drawing mode????
-	dc.b 0				; padding
-	dc.w $0004			; left
-	dc.w 0				; top
-	dc.l 0				; font (default)
-MarkStr:
-	dc.l 0				; pointer to str (fill in)
-	dc.l 0				; nothing next
