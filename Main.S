@@ -69,7 +69,7 @@ Main:
 	bsr.s SetupScr
 .openProjWin:
 	move.l IntuiBase,a6
-	lea.l ProjWinDef,a0
+	lea.l ProjNewWin,a0
 	jsr _OpenWindow(a6)
 	tst.l d0
 	beq.s .closeScreen
@@ -353,7 +353,7 @@ PROJ_WIDTH	=300
 PROJ_HEIGHT	=200
 
 	EVEN
-ProjWinDef:
+ProjNewWin:
 	dc.w 0,0			; top, left
 	dc.w PROJ_WIDTH,PROJ_HEIGHT	; width/height
 	dc.b -1,-1			; default pens
@@ -503,7 +503,7 @@ SprNewWin:
 ******** NewWindow info
 
 AllNewWins:
-	dc.l SprNewWin,ProjWinDef
+	dc.l SprNewWin,ProjNewWin
 NUM_OF_NEWWINS	=2
 
 ******** Mark Data
