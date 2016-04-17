@@ -327,7 +327,7 @@ ScrDef:
 	dc.l 0				; default font
 	dc.l Title
 	dc.l 0				; no custom gadgets
-	dc.l 0				; no custom widgets
+	dc.l 0				; no custom bitmap
 
 **** Project Window
 
