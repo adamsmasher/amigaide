@@ -41,6 +41,8 @@ NewWindow_MaxWidth	=42
 NewWindow_MaxHeight	=44
 
 **** Screen
+Screen_Width		=12
+Screen_Height		=14
 Screen_WBorTop		=35
 Screen_WBorL		=36
 Screen_WBorR		=37
