@@ -10,7 +10,6 @@
 ScrP:		ds.l 1
 ProjWinP:	ds.l 1
 PalWinP:	ds.l 1
-SprWinP:	ds.l 1
 IntuiBase:	ds.l 1
 GfxBase:	ds.l 1
 BorderTop:	ds.w 1
