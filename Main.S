@@ -313,10 +313,14 @@ Palette:
 Title:
 	dc.b "FracIDE",0
 
+SCR_WIDTH	=640
+SCR_HEIGHT	=256
+
 	EVEN
 ScrDef:
 	dc.w 0,0			; left,top
-	dc.w 640,256,2			; width/height/depth
+	dc.w SCR_WIDTH,SCR_HEIGHT	; width/height
+	dc.w 2				; bits per pixel
 	dc.b 0,1			; default pens
 	dc.w HIRES
 	dc.w SHOWTITLE
@@ -330,14 +334,10 @@ ScrDef:
 ProjStr:
 	dc.b "Project",0
 
-; TODO: get these from the screen
-PROJ_WIDTH	=300
-PROJ_HEIGHT	=200
-
 	EVEN
 ProjNewWin:
 	dc.w 0,0			; top, left
-	dc.w PROJ_WIDTH,PROJ_HEIGHT	; width/height
+	dc.w SCR_WIDTH,SCR_HEIGHT	; width/height - get from screen
 	dc.b -1,-1			; default pens
 	dc.l MENUPICK			; messages to listen for
 	dc.l BORDERLESS!BACKDROP
@@ -346,8 +346,8 @@ ProjNewWin:
 	dc.l ProjStr
 	dc.l 0				; write screen ptr here
 	dc.l 0				; no bitmap
-	dc.w PROJ_WIDTH,PROJ_HEIGHT	; min width/height
-	dc.w PROJ_WIDTH,PROJ_HEIGHT	; max width/height
+	dc.w SCR_WIDTH,SCR_HEIGHT	; min width/height
+	dc.w SCR_WIDTH,SCR_HEIGHT	; max width/height
 	dc.w CUSTOMSCREEN
 
 ******** Menu Text
