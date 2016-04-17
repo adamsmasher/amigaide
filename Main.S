@@ -3,7 +3,8 @@
 	INCLUDE Graphics.i
 	INCLUDE Intuition.i
 
-	INCLUDE SpriteEditor.S
+	SECTION Tramp,CODE
+	jmp Start
 
 	SECTION Globals,BSS
 ScrP:		ds.l 1
@@ -173,24 +174,25 @@ InitMenus:
 	rts
 ****
 MainLoop:
-	movem.l d2/a2,-(sp)
 	clr.b QuitFlag
-.getUserPort:
-	move.l ProjWinP,a0
-	move.l Window_UserPort(a0),a2	; a2=UserPort
-.getSigMask:
-	move.b MsgPort_SigBit(a2),d1
-	moveq #1,d2
-	lsl.l d1,d2			; d2=SigMask
 .eventLoop:
-	move.l d2,d0			; d0=SigMask
-	move.l 4.w,a6
-	jsr _Wait(a6)
-	move.l a2,a0			; a0=UserPort
+	move.l ProjWinP,a0
+	bsr.s WinWait
+	move.l ProjWinP,a0
+	move.l Window_UserPort(a0),a0	; a0=UserPort
 	bsr.s MsgLoop
 	tst.b QuitFlag
 	beq.s .eventLoop
-.done:	movem.l (sp)+,d2/a2
+	rts
+****
+* a0 - ptr to window to wait for a signal from
+WinWait:
+	move.l Window_UserPort(a0),a0
+	move.b MsgPort_SigBit(a0),d1
+	moveq #1,d0
+	lsl.l d1,d0
+	move.l 4.w,a6
+	jsr _Wait(a6)
 	rts
 ****
 ; a0 - pointer to UserPort
@@ -459,3 +461,7 @@ SpritesMenuHandlers:
 AllNewWins:
 	dc.l SprNewWin,ProjNewWin
 NUM_OF_NEWWINS	=2
+
+**** ASM-One doesn't like including the other modules at the top
+
+	INCLUDE SpriteEditor.S

@@ -1,3 +1,9 @@
+	SECTION SprVars,BSS
+; TODO: you'll need to allocate all of these per editor
+SprWin:	ds.l 1
+SprQuit:
+	ds.b 1
+
 	SECTION Text,CODE
 ****************
 SpriteMain:
@@ -7,10 +13,19 @@ SpriteMain:
 	jsr _OpenWindow(a6)
 	tst.l d0
 	beq .done
-	move.l d0,a0
+	move.l d0,SprWin
+	bsr.s SprMainLoop
+	move.l SprWin,a0
 	move.l IntuiBase,a6
 	jsr _CloseWindow(a6)
 .done:	rts
+****
+SprMainLoop:
+	clr.b SprQuit
+.loop:	move.l SprWin,a0
+	bsr.s WinWait
+	rts
+
 ****************
 
 	SECTION MyData,DATA
