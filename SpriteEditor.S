@@ -12,7 +12,7 @@ SpriteMain:
 	lea.l SprNewWin,a0
 	jsr _OpenWindow(a6)
 	tst.l d0
-	beq .done
+	beq.s .done
 	move.l d0,SprWin
 	bsr.s SprMainLoop
 	move.l SprWin,a0
@@ -23,7 +23,7 @@ SpriteMain:
 SprMainLoop:
 	clr.b SprQuit
 .loop:	move.l SprWin,a0
-	bsr.s WinWait
+	bsr.w WinWait
 	rts
 
 ****************
