@@ -1,28 +1,41 @@
-	SECTION SprVars,BSS
-; TODO: you'll need to allocate all of these per editor
-SprWin:	ds.l 1
-SprQuit:
-	ds.b 1
+SpriteEditor_Next	=0
+SpriteEditor_Window	=4
+SpriteEditor_Quit	=8
+
+SPRITEEDITOR_SIZE	=9
 
 	SECTION Text,CODE
 ****************
 SpriteMain:
+.allocEditor:
+	moveq.l #SPRITEEDITOR_SIZE,d0	; allocate this many bytes
+	move.l #MEMF_CLEAR,d1		; best available local, clear it
+	move.l 4.w,a6
+	jsr _AllocMem(a6)
+	tst.l d0			; success?
+	beq.s .done
+	move.l d0,a2			; a2 = SpriteEditor ptr
 .openWindow:
 	move.l IntuiBase,a6
 	lea.l SprNewWin,a0
 	jsr _OpenWindow(a6)
-	tst.l d0
-	beq.s .done
-	move.l d0,SprWin
+	tst.l d0			; success?
+	beq.s .freeEditor		; fail if not
+	move.l d0,SpriteEditor_Window(a2)
 	bsr.s SprMainLoop
-	move.l SprWin,a0
+	move.l SpriteEditor_Window(a2),a0
 	move.l IntuiBase,a6
 	jsr _CloseWindow(a6)
+.freeEditor:
+	move.l a2,a1			; a1=memory to free
+	moveq.l #SPRITEEDITOR_SIZE,d0	; d0=bytes to free
+	move.l 4.w,a6
+	jsr _FreeMem(a6)
 .done:	rts
 ****
+* a2 - pointer to this SpriteEditor
 SprMainLoop:
-	clr.b SprQuit
-.loop:	move.l SprWin,a0
+	move.l SpriteEditor_Window(a2),a0
 	bsr.w WinWait
 	rts
 
