@@ -1,5 +1,7 @@
 ******** Function Offsets
 
+_AllocMem	=-198
+_FreeMem	=-210
 _AllocEntry	=-222
 _AddHead	=-240
 _AddTask	=-282
