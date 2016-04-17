@@ -18,7 +18,6 @@ List_Head	=0
 List_Tail	=4
 List_TailPred	=8
 
-
 **** MemEntry
 MEMENTRY_SIZE	=8
 
