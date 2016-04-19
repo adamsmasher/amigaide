@@ -24,6 +24,11 @@ _ActivateWindow	=-450
 
 ******** Structure Offsets
 
+**** Gadget
+
+Gadget_LeftEdge	=4
+Gadget_TopEdge	=6
+
 **** IntuiMessage
 IntuiMessage_Class	=20
 IntuiMessage_Code	=24
@@ -95,6 +100,7 @@ GACT_RELVERIFY	=$0001
 **** Types
 
 GTYP_BOOLGADGET	=$0001
+GTYP_STRGADGET	=$0004
 
 ******** Menu defines
 
