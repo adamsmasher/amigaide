@@ -50,6 +50,62 @@ SPR_HEIGHT	=144
 SprTitle:
 	dc.b "Sprite",0
 
+**** Gadgets
+
+** SprNum
+
+SPRNUM_WIDTH	=24
+SPRNUM_HEIGHT	=10
+
+	EVEN
+SprNumBorderPts:
+	dc.w 0,0
+	dc.w SPRNUM_WIDTH,0
+	dc.w SPRNUM_WIDTH,SPRNUM_HEIGHT
+	dc.w 0,SPRNUM_HEIGHT
+	dc.w 0,0
+
+SprNumBorder:
+	dc.w 0,0			; left, top
+	dc.b 3,3			; pens
+	dc.b 0				; JAM1
+	dc.b 5				; 5 points
+	dc.l SprNumBorderPts
+	dc.l 0				; no next
+
+SprNumBuf:
+	dc.l 0
+
+SprNumInfo:
+	dc.l SprNumBuf
+	dc.l 0				; no undo buffer
+	dc.w 0				; buffer pos
+	dc.w 4				; max chars + NULL
+	dc.w 0				; disp pos
+	dc.w 0				; undo pos
+	dc.w 0				; numchars
+	dc.w 0				; dispcount
+	dc.w 0,0			; cleft, ctop
+	dc.l 0				; unused
+	dc.l 0				; long int
+	dc.l 0				; default key map
+
+SprNumGadget:
+; TODO: add more gadgets
+	dc.l 0				; next gadget
+	dc.w 0,0			; left, top
+	dc.w 24,10			; width, height
+	dc.w 0				; no flags?
+	dc.w 0				; activation?
+	dc.w GTYP_STRGADGET
+	dc.l SprNumBorder
+	dc.l 0				; no selected render
+	dc.l 0				; no text
+	dc.l 0				; no mutual exclude
+	dc.l 0				; no special info
+	dc.w 0				; no ID
+	dc.l 0				; no special user data
+
 **** NewWindow
 	EVEN
 SprNewWin:
@@ -58,8 +114,7 @@ SprNewWin:
 	dc.b -1,-1			; default pens
 	dc.l MOUSEBUTTONS!CLOSEWINDOW
 	dc.l WINDOWCLOSE!WINDOWDEPTH!WINDOWDRAG!RMBTRAP
-; TODO: in the future this will have lots of gadgets
-	dc.l 0				; no gadgets
+	dc.l 0
 	dc.l 0				; default checkmark image
 	dc.l SprTitle
 	dc.l 0				; write screen ptr here
