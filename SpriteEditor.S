@@ -23,6 +23,10 @@ NewSpriteEditor:
 	tst.l d0			; success?
 	beq.s .freeEditor		; fail if not
 	move.l d0,SpriteEditor_Window(a2)
+.updateSigMask:
+	move.l d0,a0
+	bsr.w AddWinToSigMask
+.updateSprEditorList:
 	move.l FirstSprEditor,SpriteEditor_Next(a2)
 	move.l a2,FirstSprEditor
 	bsr.s .done
@@ -33,8 +37,19 @@ NewSpriteEditor:
 	jsr _FreeMem(a6)
 .done:	move.l (sp)+,a2
 	rts
-
 ****************
+* a0 - ptr to SpriteEditor
+CloseSpriteEditor:
+.closeWindow:
+	move.l a0,-(sp)
+	move.l SpriteEditor_Window(a0),a0
+	move.l IntuiBase,a6
+	jsr _CloseWindow(a6)
+.freeEditor:
+	move.l (sp)+,a1
+	moveq.l #SPRITEEDITOR_SIZE,d0
+	move.l 4.w,a6
+	jmp _FreeMem(a6)
 
 	SECTION MyData,DATA
 ******** Sprite window

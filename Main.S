@@ -9,6 +9,7 @@
 	SECTION Globals,BSS
 ScrP:		ds.l 1
 ProjWinP:	ds.l 1
+SignalMask:	ds.l 1
 FirstSprEditor:	ds.l 1
 IntuiBase:	ds.l 1
 GfxBase:	ds.l 1
@@ -57,15 +58,17 @@ InitLib:
 ****
 * assumes that Intuition and the Gfx lib have been loaded
 Main:
+.initGlobals:
+	clr.l FirstSprEditor
 .openScreen:
 	move.l IntuiBase,a6
 	lea.l ScrDef,a0
 	jsr _OpenScreen(a6)
 	tst.l d0		; success?
-	beq.s .done
+	beq.w .done
 	move.l d0,ScrP
 ; now that the screen is opened, set it up and install it into the win cfs
-	bsr.s SetupScr
+	bsr.w SetupScr
 .openProjWin:
 	move.l IntuiBase,a6
 	lea.l ProjNewWin,a0
@@ -85,6 +88,10 @@ Main:
 	move.l ProjWinP,a0
 	move.l IntuiBase,a6
 	jsr _ActivateWindow(a6)
+.initSigMask:
+	clr.l SignalMask
+	move.l ProjWinP,a0
+	bsr.w AddWinToSigMask
 ; jump into the main loop
 	bsr.w MainLoop
 .detachMenu:
@@ -179,48 +186,119 @@ AddBor2NewWin:
 InitMenus:
 	rts
 ****
+* a0 - ptr to window to add to sig mask
+AddWinToSigMask:
+	move.l Window_UserPort(a0),a0
+	move.b MsgPort_SigBit(a0),d1
+	moveq #1,d0
+	lsl.l d1,d0
+	or.l d0,SignalMask
+	rts
+****
 MainLoop:
 	clr.b QuitFlag
 .eventLoop:
-	move.l ProjWinP,a0
-	bsr.s WinWait
-	move.l ProjWinP,a0
-	move.l Window_UserPort(a0),a0	; a0=UserPort
+	move.l SignalMask,d0
+	move.l 4.w,a6
+	jsr _Wait(a6)
 	bsr.s MsgLoop
 	tst.b QuitFlag
 	beq.s .eventLoop
 	rts
 ****
-* a0 - ptr to window to wait for a signal from
-WinWait:
+* d0 - bitmask of signals that occurred
+MsgLoop:
+	move.l d0,-(sp)
+	bsr.s ChkForProjMsgs
+	move.l (sp)+,d0			; d0=Signals
+	bsr.s ChkForSprEditorMsgs
+****
+* a0 - window to check for
+* d0 - bitmask of signals that occurred
+* returns Z if not a match
+ChkForWinMsgs:
+	moveq #0,d1
 	move.l Window_UserPort(a0),a0
 	move.b MsgPort_SigBit(a0),d1
-	moveq #1,d0
-	lsl.l d1,d0
-	move.l 4.w,a6
-	jsr _Wait(a6)
+	btst d1,d0
 	rts
 ****
-; a0 - pointer to UserPort
-MsgLoop:
-	movem.l a2-a3,-(sp)
-	move.l a0,a3			; a3=UserPort
-.loop:	move.l a3,a0			; a0=UserPort
-	move.l 4.w,a6			; a6=ExecBase
-	jsr _GetMsg(a6)			; d0=Msg
-	tst.l d0			; no messages left?
+* d0 - bitmask of signals that occurred
+ChkForProjMsgs:
+	move.l ProjWinP,a0
+	bsr.s ChkForWinMsgs
 	beq.s .done
-	move.l d0,a2			; a2=Msg
-	move.l a2,a1			; a1=Msg
+	bsr.s HandleProjMsgs
+.done:	rts
+****
+* d0 - bitmask of signals that occurred
+ChkForSprEditorMsgs:
+	movem.l d2/a2,-(sp)
+	move.l d0,d2
+	move.l FirstSprEditor,a2
+	bra.s .test
+.loop:	move.l SpriteEditor_Window(a2),a0
+	move.l d2,d0
+	bsr.s ChkForWinMsgs
+	beq.s .next
+	move.l a2,a0
+	bsr.s HandleSprEditorMsgs
+.next:	move.l SpriteEditor_Next(a2),a2
+.test:	cmp.l #0,a2
+	bne.s .loop
+	movem.l (sp)+,d2/a2
+	rts
+****
+* a0 - UserPort to check
+GetAckMsg:
+	move.l 4.w,a6
+	jsr _GetMsg(a6)
+	tst.l d0
+	beq.s .done
+	move.l d0,-(sp)
+	move.l d0,a1
 	jsr _ReplyMsg(a6)
+	move.l (sp)+,d0
+.done:	rts
+****
+HandleProjMsgs:
+	move.l a2,-(sp)
+	move.l ProjWinP,a2
+	move.l Window_UserPort(a2),a2
+.loop:	move.l a2,a0			; a0=UserPort
+	bsr.s GetAckMsg
+	tst.l d0
+	beq.s .done
+	move.l d0,a0			; a0=Msg
 .dispatch:
-	move.l IntuiMessage_Class(a2),d0
+	move.l IntuiMessage_Class(a0),d0
 	cmp.l #MENUPICK,d0
 	beq.s .menuPick
 	bra.s .loop
 .menuPick:
-	move.w IntuiMessage_Code(a2),d0
+	move.w IntuiMessage_Code(a0),d0
 	bsr.s HandleMenu
+	bra.s .loop
+.done:	move.l (sp)+,a2
+	rts
+****
+* a0 - contains ptr to sprite editor
+HandleSprEditorMsgs:
+	movem.l a2-a3,-(sp)
+	move.l a0,a3
+	move.l SpriteEditor_Window(a0),a0
+	move.l Window_UserPort(a0),a2
+.loop:	move.l a2,a0			; a0=UserPort
+	bsr.s GetAckMsg
+	tst.l d0
+	beq.s .done
+	move.l d0,a0			; a0=Msg
+.dispatch:
+	move.l IntuiMessage_Class(a0),d0
+	cmp.l #CLOSEWINDOW,d0
+	bne.s .loop
+	move.l a3,a0
+	bsr.w CloseSpriteEditor
 	bra.s .loop
 .done:	movem.l (sp)+,a2-a3
 	rts
