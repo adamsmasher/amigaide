@@ -103,8 +103,15 @@ Main:
 SetupScr:
 	bsr.s InitBorderInfo
 	bsr.s InitPal
-	bsr.s InsScrP2WinDefs
+	bsr.w InsScrP2WinDefs
 	bsr.w AddBor2NewWins
+; TODO: put me in a function
+	lea.l SprNumGadget,a0
+	move.w BorderTop,d0
+	add.w d0,Gadget_TopEdge(a0)
+	moveq.l #0,d0
+	move.b BorderLeft,d0
+	add.w d0,Gadget_LeftEdge(a0)
 	rts
 ****
 InitBorderInfo:
