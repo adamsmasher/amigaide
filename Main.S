@@ -9,7 +9,7 @@
 	SECTION Globals,BSS
 ScrP:		ds.l 1
 ProjWinP:	ds.l 1
-PalWinP:	ds.l 1
+FirstSprEditor:	ds.l 1
 IntuiBase:	ds.l 1
 GfxBase:	ds.l 1
 BorderTop:	ds.w 1
@@ -242,14 +242,7 @@ QuitItemHandler:
 	rts
 ****
 NewSpriteItemHandler:
-	movem.l a2-a3,-(sp)
-	bsr.s AllocNewTask		; a0 = ptr to task
-	move.l a0,a1			; a1 = ptr to task
-	lea.l SpriteMain,a2		; a2 = code
-	move.l #0,a3			; no special exit code
-	move.l 4.w,a6
-	jsr _AddTask(a6)
-	movem.l (sp)+,a2-a3
+	bsr.w NewSpriteEditor
 	rts
 ****
 * returns in a0 ptr to new Task

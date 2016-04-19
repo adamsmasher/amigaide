@@ -6,14 +6,15 @@ SPRITEEDITOR_SIZE	=9
 
 	SECTION Text,CODE
 ****************
-SpriteMain:
+NewSpriteEditor:
+	move.l a2,-(sp)
 .allocEditor:
 	moveq.l #SPRITEEDITOR_SIZE,d0	; allocate this many bytes
 	move.l #MEMF_CLEAR,d1		; best available local, clear it
 	move.l 4.w,a6
 	jsr _AllocMem(a6)
 	tst.l d0			; success?
-	beq.s .done
+	beq.s .done			; fail otherwise
 	move.l d0,a2			; a2 = SpriteEditor ptr
 .openWindow:
 	move.l IntuiBase,a6
@@ -22,21 +23,15 @@ SpriteMain:
 	tst.l d0			; success?
 	beq.s .freeEditor		; fail if not
 	move.l d0,SpriteEditor_Window(a2)
-	bsr.s SprMainLoop
-	move.l SpriteEditor_Window(a2),a0
-	move.l IntuiBase,a6
-	jsr _CloseWindow(a6)
+	move.l FirstSprEditor,SpriteEditor_Next(a2)
+	move.l a2,FirstSprEditor
+	bsr.s .done
 .freeEditor:
-	move.l a2,a1			; a1=memory to free
-	moveq.l #SPRITEEDITOR_SIZE,d0	; d0=bytes to free
+	move.l a2,a1
+	moveq.l #SPRITEEDITOR_SIZE,d0
 	move.l 4.w,a6
 	jsr _FreeMem(a6)
-.done:	rts
-****
-* a2 - pointer to this SpriteEditor
-SprMainLoop:
-	move.l SpriteEditor_Window(a2),a0
-	bsr.w WinWait
+.done:	move.l (sp)+,a2
 	rts
 
 ****************
