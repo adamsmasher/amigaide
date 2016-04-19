@@ -44,8 +44,8 @@ SprMainLoop:
 	SECTION MyData,DATA
 ******** Sprite window
 
-SPR_WIDTH	=100
-SPR_HEIGHT	=100
+SPR_WIDTH	=128
+SPR_HEIGHT	=144
 
 SprTitle:
 	dc.b "Sprite",0
