@@ -12,14 +12,14 @@ NewSpriteEditor:
 	moveq.l #SPRITEEDITOR_SIZE,d0	; allocate this many bytes
 	move.l #MEMF_CLEAR,d1		; best available local, clear it
 	move.l 4.w,a6
-	jsr _AllocMem(a6)
+	jsr _LVOAllocMem(a6)
 	tst.l d0			; success?
 	beq.s .done			; fail otherwise
 	move.l d0,a2			; a2 = SpriteEditor ptr
 .openWindow:
 	move.l IntuiBase,a6
 	lea.l SprNewWin,a0
-	jsr _OpenWindow(a6)
+	jsr _LVOOpenWindow(a6)
 	tst.l d0			; success?
 	beq.s .freeEditor		; fail if not
 	move.l d0,SpriteEditor_Window(a2)
@@ -34,7 +34,7 @@ NewSpriteEditor:
 	move.l a2,a1
 	moveq.l #SPRITEEDITOR_SIZE,d0
 	move.l 4.w,a6
-	jsr _FreeMem(a6)
+	jsr _LVOFreeMem(a6)
 .done:	move.l (sp)+,a2
 	rts
 ****************
@@ -44,12 +44,12 @@ CloseSpriteEditor:
 	move.l a0,-(sp)
 	move.l SpriteEditor_Window(a0),a0
 	move.l IntuiBase,a6
-	jsr _CloseWindow(a6)
+	jsr _LVOCloseWindow(a6)
 .freeEditor:
 	move.l (sp)+,a1
 	moveq.l #SPRITEEDITOR_SIZE,d0
 	move.l 4.w,a6
-	jmp _FreeMem(a6)
+	jmp _LVOFreeMem(a6)
 
 	SECTION MyData,DATA
 ******** Sprite window

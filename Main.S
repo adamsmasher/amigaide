@@ -1,7 +1,9 @@
-	INCDIR Frac:FracIDE/
-	INCLUDE Exec.i
-	INCLUDE Graphics.i
-	INCLUDE Intuition.i
+	INCLUDE "exec/exec.i"
+	INCLUDE "exec/exec_lib.i"
+	INCLUDE "graphics/gfx.i"
+	INCLUDE "graphics/graphics_lib.i"
+	INCLUDE "intuition/intuition.i"
+	INCLUDE "intuition/intuition_lib.i"
 
 	SECTION Tramp,CODE
 	jmp Start
@@ -42,7 +44,7 @@ Start:
 .closeGfx:
 	move.l GfxBase,a1	; a1=lib-to-close=gfx
 	move.l 4.w,a6		; a6=exec base addr
-	jsr _CloseLibrary(a6)
+	jsr _LVOCloseLibrary(a6)
 .closeIntui:
 	move.l a6,a1		; a1=lib-to-close=intuition
 	move.l 4.w,a6		; a6=exec base addr
@@ -53,7 +55,7 @@ Start:
 InitLib:
 	move.l 4.w,a6		; a6=exec base addr
 	moveq #33,d0		; d0=version#
-	jsr _LoadLibrary(a6)	; d0=lib
+	jsr _LVOOpenLibrary(a6)	; d0=lib
 	rts
 ****
 * assumes that Intuition and the Gfx lib have been loaded
@@ -63,7 +65,7 @@ Main:
 .openScreen:
 	move.l IntuiBase,a6
 	lea.l ScrDef,a0
-	jsr _OpenScreen(a6)
+	jsr _LVOOpenScreen(a6)
 	tst.l d0		; success?
 	beq.w .done
 	move.l d0,ScrP
@@ -72,7 +74,7 @@ Main:
 .openProjWin:
 	move.l IntuiBase,a6
 	lea.l ProjNewWin,a0
-	jsr _OpenWindow(a6)
+	jsr _LVOOpenWindow(a6)
 	tst.l d0
 	beq.s .closeScreen
 	move.l d0,ProjWinP
@@ -81,13 +83,13 @@ Main:
 	move.l ProjWinP,a0
 	lea.l ProjMenu,a1
 	move.l IntuiBase,a6
-	jsr _SetMenuStrip(a6)	
+	jsr _LVOSetMenuStrip(a6)
 	tst.l d0
 	beq.s .closeProjWin
 .activateProjWin:
 	move.l ProjWinP,a0
 	move.l IntuiBase,a6
-	jsr _ActivateWindow(a6)
+	jsr _LVOActivateWindow(a6)
 .initSigMask:
 	clr.l SignalMask
 	move.l ProjWinP,a0
@@ -97,14 +99,14 @@ Main:
 .detachMenu:
 	move.l ProjWinP,a0
 	move.l IntuiBase,a6
-	jsr _ClearMenuStrip(a6)
+	jsr _LVOClearMenuStrip(a6)
 .closeProjWin:
 	move.l IntuiBase,a6
 	move.l ProjWinP,a0
-	jsr _CloseWindow(a6)
+	jsr _LVOCloseWindow(a6)
 .closeScreen:	
 	move.l ScrP,a0
-	jsr _CloseScreen(a6)
+	jsr _LVOCloseScreen(a6)
 .done:	rts
 ****
 SetupScr:
@@ -115,21 +117,21 @@ SetupScr:
 ; TODO: put me in a function
 	lea.l SprNumGadget,a0
 	move.w BorderTop,d0
-	add.w d0,Gadget_TopEdge(a0)
+	add.w d0,gg_TopEdge(a0)
 	moveq.l #0,d0
 	move.b BorderLeft,d0
-	add.w d0,Gadget_LeftEdge(a0)
+	add.w d0,gg_LeftEdge(a0)
 	rts
 ****
 InitBorderInfo:
 	move.l ScrP,a0
-	move.b Screen_WBorL(a0),BorderLeft
-	move.b Screen_WBorR(a0),BorderRight
-	move.b Screen_WBorBot(a0),BorderBottom
+	move.b sc_WBorLeft(a0),BorderLeft
+	move.b sc_WBorRight(a0),BorderRight
+	move.b sc_WBorBottom(a0),BorderBottom
 	moveq #0,d0
-	move.b Screen_WBorTop(a0),d0
-	move.l Screen_Font(a0),a0
-	add.w TextAttr_YSize(a0),d0
+	move.b sc_WBorTop(a0),d0
+	move.l sc_Font(a0),a0
+	add.w ta_YSize(a0),d0
 	addq #1,d0
 	move.w d0,BorderTop
 	rts
@@ -138,7 +140,7 @@ InitPal:
 	movem.l d2-d4/a2-a3,-(sp)
 .getViewport:
 	move.l ScrP,a0
-	lea.l Screen_Viewport(a0),a2
+	lea.l sc_ViewPort(a0),a2
 .init:
 	lea.l Palette,a3
 	move.l GfxBase,a6
@@ -146,7 +148,7 @@ InitPal:
 .loop:	move.l a2,a0		; a0=Viewport
 	move.w d4,d0		; d0=palette #
 	movem.w (a3)+,d1-d3	; d1-d3=entries
-	jsr _SetRGB4(a6)
+	jsr _LVOSetRGB4(a6)
 	dbra d4,.loop
 	movem.l (sp)+,d2-d4/a2-a3
 	rts
@@ -156,7 +158,7 @@ InsScrP2WinDefs:
 	lea.l AllNewWins,a0
 	moveq #NUM_OF_NEWWINS-1,d1
 .loop:	move.l (a0)+,a1
-	move.l d0,NewWindow_Screen(a1)
+	move.l d0,nw_Screen(a1)
 	dbra d1,.loop
 	rts
 ****
@@ -167,18 +169,18 @@ AddBor2NewWins:
 ****
 * a0 - ptr to NewWindow struct
 AddBor2NewWin:
-	move.w NewWindow_Width(a0),d0
-	move.w NewWindow_Height(a0),d1
+	move.w nw_Width(a0),d0
+	move.w nw_Height(a0),d1
 	add.b BorderLeft,d0
 	add.b BorderRight,d0
 	add.w BorderTop,d1
 	add.b BorderBottom,d1
-	move.w d0,NewWindow_Width(a0)
-	move.w d0,NewWindow_MinWidth(a0)
-	move.w d0,NewWindow_MaxWidth(a0)
-	move.w d1,NewWindow_Height(a0)
-	move.w d1,NewWindow_MinHeight(a0)
-	move.w d1,NewWindow_MaxHeight(a0)
+	move.w d0,nw_Width(a0)
+	move.w d0,nw_MinWidth(a0)
+	move.w d0,nw_MaxWidth(a0)
+	move.w d1,nw_Height(a0)
+	move.w d1,nw_MinHeight(a0)
+	move.w d1,nw_MaxHeight(a0)
 	rts
 ****
 * This is where we'll dynamically size the menus, should we ever get around
@@ -188,8 +190,8 @@ InitMenus:
 ****
 * a0 - ptr to window to add to sig mask
 AddWinToSigMask:
-	move.l Window_UserPort(a0),a0
-	move.b MsgPort_SigBit(a0),d1
+	move.l wd_UserPort(a0),a0
+	move.b MP_SIGBIT(a0),d1
 	moveq #1,d0
 	lsl.l d1,d0
 	or.l d0,SignalMask
@@ -200,7 +202,7 @@ MainLoop:
 .eventLoop:
 	move.l SignalMask,d0
 	move.l 4.w,a6
-	jsr _Wait(a6)
+	jsr _LVOWait(a6)
 	bsr.s MsgLoop
 	tst.b QuitFlag
 	beq.s .eventLoop
@@ -218,8 +220,8 @@ MsgLoop:
 * returns Z if not a match
 ChkForWinMsgs:
 	moveq #0,d1
-	move.l Window_UserPort(a0),a0
-	move.b MsgPort_SigBit(a0),d1
+	move.l wd_UserPort(a0),a0
+	move.b MP_SIGBIT(a0),d1
 	btst d1,d0
 	rts
 ****
@@ -252,31 +254,31 @@ ChkForSprEditorMsgs:
 * a0 - UserPort to check
 GetAckMsg:
 	move.l 4.w,a6
-	jsr _GetMsg(a6)
+    jsr _LVOGetMsg(a6)
 	tst.l d0
 	beq.s .done
 	move.l d0,-(sp)
 	move.l d0,a1
-	jsr _ReplyMsg(a6)
+	jsr _LVOReplyMsg(a6)
 	move.l (sp)+,d0
 .done:	rts
 ****
 HandleProjMsgs:
 	move.l a2,-(sp)
 	move.l ProjWinP,a2
-	move.l Window_UserPort(a2),a2
+	move.l wd_UserPort(a2),a2
 .loop:	move.l a2,a0			; a0=UserPort
 	bsr.s GetAckMsg
 	tst.l d0
 	beq.s .done
 	move.l d0,a0			; a0=Msg
 .dispatch:
-	move.l IntuiMessage_Class(a0),d0
+	move.l im_Class(a0),d0
 	cmp.l #MENUPICK,d0
 	beq.s .menuPick
 	bra.s .loop
 .menuPick:
-	move.w IntuiMessage_Code(a0),d0
+	move.w im_Code(a0),d0
 	bsr.s HandleMenu
 	bra.s .loop
 .done:	move.l (sp)+,a2
@@ -287,14 +289,14 @@ HandleSprEditorMsgs:
 	movem.l a2-a3,-(sp)
 	move.l a0,a3
 	move.l SpriteEditor_Window(a0),a0
-	move.l Window_UserPort(a0),a2
+	move.l wd_UserPort(a0),a2
 .loop:	move.l a2,a0			; a0=UserPort
 	bsr.s GetAckMsg
 	tst.l d0
 	beq.s .done
 	move.l d0,a0			; a0=Msg
 .dispatch:
-	move.l IntuiMessage_Class(a0),d0
+	move.l im_Class(a0),d0
 	cmp.l #CLOSEWINDOW,d0
 	bne.s .loop
 	move.l a3,a0
@@ -399,7 +401,7 @@ ScrDef:
 	dc.w SCR_WIDTH,SCR_HEIGHT	; width/height
 	dc.w 2				; bits per pixel
 	dc.b 0,1			; default pens
-	dc.w HIRES
+	dc.w V_HIRES				; view mode
 	dc.w SHOWTITLE
 	dc.l 0				; default font
 	dc.l Title
