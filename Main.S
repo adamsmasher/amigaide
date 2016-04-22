@@ -9,17 +9,17 @@
 	jmp Start
 
 	SECTION Globals,BSS
-ScrP:		ds.l 1
-ProjWinP:	ds.l 1
-SignalMask:	ds.l 1
+ScrP:			ds.l 1
+ProjWinP:		ds.l 1
+SignalMask:		ds.l 1
 FirstSprEditor:	ds.l 1
-IntuiBase:	ds.l 1
-GfxBase:	ds.l 1
-BorderTop:	ds.w 1
-BorderLeft:	ds.b 1
+IntuiBase:		ds.l 1
+GfxBase:		ds.l 1
+BorderTop:		ds.w 1
+BorderLeft:		ds.b 1
 BorderRight:	ds.b 1
 BorderBottom:	ds.b 1
-QuitFlag:	ds.b 1
+QuitFlag:		ds.b 1
 
 ****************
 
@@ -53,8 +53,8 @@ Start:
 * a1 - pointer to library name
 * returns library base address or NULL in d0
 InitLib:
-	move.l 4.w,a6		; a6=exec base addr
-	moveq #33,d0		; d0=version#
+	move.l 4.w,a6			; a6=exec base addr
+	moveq #33,d0			; d0=version#
 	jsr _LVOOpenLibrary(a6)	; d0=lib
 	rts
 ****
@@ -397,16 +397,16 @@ SCR_HEIGHT	=256
 
 	EVEN
 ScrDef:
-	dc.w 0,0			; left,top
+	dc.w 0,0					; left,top
 	dc.w SCR_WIDTH,SCR_HEIGHT	; width/height
-	dc.w 2				; bits per pixel
-	dc.b 0,1			; default pens
+	dc.w 2						; bits per pixel
+	dc.b 0,1					; default pens
 	dc.w V_HIRES				; view mode
 	dc.w SHOWTITLE
-	dc.l 0				; default font
+	dc.l 0						; default font
 	dc.l Title
-	dc.l 0				; no custom gadgets
-	dc.l 0				; no custom bitmap
+	dc.l 0						; no custom gadgets
+	dc.l 0						; no custom bitmap
 
 **** Project Window
 
