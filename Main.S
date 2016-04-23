@@ -5,6 +5,9 @@
 	INCLUDE "intuition/intuition.i"
 	INCLUDE "intuition/intuition_lib.i"
 
+	INCLUDE "SpriteEditor.i"
+	INCLUDE "SpriteEditor_intf.i"
+
 	SECTION Tramp,CODE
 	jmp Start
 
@@ -492,7 +495,3 @@ SpritesMenuHandlers:
 AllNewWins:
 	dc.l SprNewWin,ProjNewWin
 NUM_OF_NEWWINS	=2
-
-**** ASM-One doesn't like including the other modules at the top
-
-	INCLUDE SpriteEditor.S

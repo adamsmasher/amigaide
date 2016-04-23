@@ -1,15 +1,18 @@
-SpriteEditor_Next	=0
-SpriteEditor_Window	=4
-SpriteEditor_Quit	=8
+	INCLUDE "exec/exec.i"
+	INCLUDE "exec/exec_lib.i"
+	INCLUDE "intuition/intuition.i"
+	INCLUDE "intuition/intuition_lib.i"
 
-SPRITEEDITOR_SIZE	=9
+	INCLUDE "globals.i"
+
+	INCLUDE "SpriteEditor.i"
 
 	SECTION Text,CODE
 ****************
 NewSpriteEditor:
 	move.l a2,-(sp)
 .allocEditor:
-	moveq.l #SPRITEEDITOR_SIZE,d0	; allocate this many bytes
+	moveq.l #SPRITEEDITOR_SIZEOF,d0	; allocate this many bytes
 	move.l #MEMF_CLEAR,d1		; best available local, clear it
 	move.l 4.w,a6
 	jsr _LVOAllocMem(a6)
@@ -32,7 +35,7 @@ NewSpriteEditor:
 	bsr.s .done
 .freeEditor:
 	move.l a2,a1
-	moveq.l #SPRITEEDITOR_SIZE,d0
+	moveq.l #SPRITEEDITOR_SIZEOF,d0
 	move.l 4.w,a6
 	jsr _LVOFreeMem(a6)
 .done:	move.l (sp)+,a2
@@ -47,7 +50,7 @@ CloseSpriteEditor:
 	jsr _LVOCloseWindow(a6)
 .freeEditor:
 	move.l (sp)+,a1
-	moveq.l #SPRITEEDITOR_SIZE,d0
+	moveq.l #SPRITEEDITOR_SIZEOF,d0
 	move.l 4.w,a6
 	jmp _LVOFreeMem(a6)
 
