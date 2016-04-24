@@ -29,7 +29,7 @@ QuitFlag:		ds.b 1
 
 ****************
 
-	SECTION Text,CODE
+	SECTION Main,CODE
 * in the Start routine we initialize our libraries
 * then jump into Main
 Start:

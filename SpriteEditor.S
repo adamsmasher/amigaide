@@ -7,7 +7,7 @@
 
 	INCLUDE "SpriteEditor.i"
 
-	SECTION Text,CODE
+	SECTION SpriteEditor,CODE
 ****************
 NewSpriteEditor:
 	move.l a2,-(sp)
