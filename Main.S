@@ -10,6 +10,7 @@
 
 	jmp Start
 
+; TODO: put actual globals in another module
 	SECTION Globals,BSS
 ScrP:			ds.l 1
 ProjWinP:		ds.l 1
