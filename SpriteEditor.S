@@ -55,7 +55,7 @@ CloseSpriteEditor:
 	moveq.l #SPRITEEDITOR_SIZEOF,d0
 	move.l 4.w,a6
 	jmp _LVOFreeMem(a6)
-	
+
 	XDEF CloseSpriteEditor
 
 	SECTION MyData,DATA
@@ -123,6 +123,8 @@ SprNumGadget:
 	dc.w 0				; no ID
 	dc.l 0				; no special user data
 
+	XDEF SprNumGadget
+
 **** NewWindow
 	EVEN
 SprNewWin:
@@ -139,3 +141,5 @@ SprNewWin:
 	dc.w SPR_WIDTH,SPR_HEIGHT	; min width/height
 	dc.w SPR_WIDTH,SPR_HEIGHT	; max width/height
 	dc.w CUSTOMSCREEN		; type
+
+	XDEF SprNewWin

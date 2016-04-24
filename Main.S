@@ -24,6 +24,9 @@ BorderRight:	ds.b 1
 BorderBottom:	ds.b 1
 QuitFlag:		ds.b 1
 
+	XDEF IntuiBase
+	XDEF FirstSprEditor
+
 ****************
 
 	SECTION Text,CODE
@@ -199,6 +202,8 @@ AddWinToSigMask:
 	lsl.l d1,d0
 	or.l d0,SignalMask
 	rts
+
+	XDEF AddWinToSigMask
 ****
 MainLoop:
 	clr.b QuitFlag
