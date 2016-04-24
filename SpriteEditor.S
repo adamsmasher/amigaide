@@ -40,6 +40,8 @@ NewSpriteEditor:
 	jsr _LVOFreeMem(a6)
 .done:	move.l (sp)+,a2
 	rts
+
+	XDEF NewSpriteEditor
 ****************
 * a0 - ptr to SpriteEditor
 CloseSpriteEditor:
@@ -53,6 +55,8 @@ CloseSpriteEditor:
 	moveq.l #SPRITEEDITOR_SIZEOF,d0
 	move.l 4.w,a6
 	jmp _LVOFreeMem(a6)
+	
+	XDEF CloseSpriteEditor
 
 	SECTION MyData,DATA
 ******** Sprite window
