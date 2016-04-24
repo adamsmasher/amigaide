@@ -8,7 +8,6 @@
 	INCLUDE "SpriteEditor.i"
 	INCLUDE "SpriteEditor_intf.i"
 
-	SECTION Tramp,CODE
 	jmp Start
 
 	SECTION Globals,BSS
