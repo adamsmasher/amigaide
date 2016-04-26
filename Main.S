@@ -338,10 +338,10 @@ RemoveSpriteEditor:
 	tst.l SpriteEditor_Prev(a0)
 	beq.s .noPrev
 	move.l SpriteEditor_Prev(a0),a1
-	move.l SpriteEditor_Next(a0),SpriteEditor_Next(a1)
+	move.l SpriteEditor_Next(a0),SpriteEditor_Next(a1)	; prev.next=dead.next
 	bra.s .next
 .noPrev:
-	move.l SpriteEditor_Next(a0),FirstSprEditor
+	move.l SpriteEditor_Next(a0),FirstSprEditor			; first = dead.next
 .next:
 	tst.l SpriteEditor_Next(a0)
 	beq.s .done
