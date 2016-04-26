@@ -352,6 +352,10 @@ RemoveSpriteEditor:
 ****
 * d0 - contains Menu Number
 HandleMenu:
+	cmp.l #MENUNULL,d0
+	bne.s .validSelection
+	rts
+.validSelection:
 	move.w d0,d1
 	and.w #$001F,d1			; d1 = Menu
 	lea.l MenuHandlers,a0
