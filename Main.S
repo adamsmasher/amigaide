@@ -25,7 +25,6 @@ BorderBottom:	ds.b 1
 QuitFlag:		ds.b 1
 
 	XDEF IntuiBase
-	XDEF FirstSprEditor
 
 ****************
 
@@ -334,6 +333,12 @@ QuitItemHandler:
 ****
 NewSpriteItemHandler:
 	bsr.w NewSpriteEditor
+	tst.l d0
+	beq.s .done
+	move.l d0,a0
+	move.l FirstSprEditor,SpriteEditor_Next(a0)
+	move.l a0,FirstSprEditor
+.done:
 	rts
 ****
 CloseSpriteEditors:

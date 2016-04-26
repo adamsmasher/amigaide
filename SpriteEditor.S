@@ -9,6 +9,7 @@
 
 	SECTION SpriteEditor,CODE
 ****************
+* returns in d0 address of new sprite editor, or NULL on failure
 NewSpriteEditor:
 	move.l a2,-(sp)
 .allocEditor:
@@ -29,16 +30,16 @@ NewSpriteEditor:
 .updateSigMask:
 	move.l d0,a0
 	bsr.w AddWinToSigMask
-.updateSprEditorList:
-	move.l FirstSprEditor,SpriteEditor_Next(a2)
-	move.l a2,FirstSprEditor
+	move.l a2,d0						; return in d0
 	bra.s .done
 .freeEditor:
 	move.l a2,a1
 	moveq.l #SPRITEEDITOR_SIZEOF,d0
 	move.l 4.w,a6
 	jsr _LVOFreeMem(a6)
-.done:	move.l (sp)+,a2
+	moveq.l #0,d0						; return NULL
+.done:
+	move.l (sp)+,a2
 	rts
 
 	XDEF NewSpriteEditor
