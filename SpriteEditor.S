@@ -27,9 +27,6 @@ NewSpriteEditor:
 	tst.l d0							; success?
 	beq.s .freeEditor					; fail if not
 	move.l d0,SpriteEditor_Window(a2)
-.updateSigMask:
-	move.l d0,a0
-	bsr.w AddWinToSigMask
 	move.l a2,d0						; return in d0
 	bra.s .done
 .freeEditor:

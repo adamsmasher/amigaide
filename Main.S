@@ -202,8 +202,6 @@ AddWinToSigMask:
 	lsl.l d1,d0
 	or.l d0,SignalMask
 	rts
-
-	XDEF AddWinToSigMask
 ****
 MainLoop:
 	clr.b QuitFlag
@@ -338,6 +336,8 @@ NewSpriteItemHandler:
 	move.l d0,a0
 	move.l FirstSprEditor,SpriteEditor_Next(a0)
 	move.l a0,FirstSprEditor
+	move.l SpriteEditor_Window(a0),a0
+	bsr.w AddWinToSigMask
 .done:
 	rts
 ****
