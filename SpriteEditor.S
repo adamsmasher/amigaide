@@ -32,7 +32,7 @@ NewSpriteEditor:
 .updateSprEditorList:
 	move.l FirstSprEditor,SpriteEditor_Next(a2)
 	move.l a2,FirstSprEditor
-	bsr.s .done
+	bra.s .done
 .freeEditor:
 	move.l a2,a1
 	moveq.l #SPRITEEDITOR_SIZEOF,d0
