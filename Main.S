@@ -308,12 +308,32 @@ HandleSprEditorMsgs:
 	move.l im_Class(a0),d0
 	cmp.l #CLOSEWINDOW,d0
 	bne.s .loop
-	move.l a3,a0
-; TODO: fix up sprite list
+	move.l a3,a0						; a0 = spr editor
+	bsr.s RemoveSpriteEditor
+	move.l a3,a0						; a0 = spr editor once more
 ; TODO: fix up sigmask
 	bsr.w CloseSpriteEditor
 	bra.s .loop
-.done:	movem.l (sp)+,a2-a3
+.done:
+	movem.l (sp)+,a2-a3
+	rts
+****
+* a0 - sprite editor to be removed
+RemoveSpriteEditor:
+.prev:
+	tst.l SpriteEditor_Prev(a0)
+	beq.s .noPrev
+	move.l SpriteEditor_Prev(a0),a1
+	move.l SpriteEditor_Next(a0),SpriteEditor_Next(a1)
+	bra.s .next
+.noPrev:
+	move.l SpriteEditor_Next(a0),FirstSprEditor
+.next:
+	tst.l SpriteEditor_Next(a0)
+	beq.s .done
+	move.l SpriteEditor_Next(a0),a1
+	move.l SpriteEditor_Prev(a1),SpriteEditor_Prev(a0)
+.done:
 	rts
 ****
 * d0 - contains Menu Number
@@ -338,6 +358,7 @@ NewSpriteItemHandler:
 	beq.s .done
 .install:
 	move.l d0,a0
+	clr.l SpriteEditor_Prev(a0)
 	move.l FirstSprEditor,SpriteEditor_Next(a0)
 	move.l a0,FirstSprEditor
 	move.l SpriteEditor_Window(a0),a0
