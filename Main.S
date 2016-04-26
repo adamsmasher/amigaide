@@ -275,7 +275,8 @@ HandleProjMsgs:
 	move.l a2,-(sp)
 	move.l ProjWinP,a2
 	move.l wd_UserPort(a2),a2
-.loop:	move.l a2,a0			; a0=UserPort
+.loop:
+	move.l a2,a0			; a0=UserPort
 	bsr.s GetAckMsg
 	tst.l d0
 	beq.s .done
