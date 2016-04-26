@@ -228,6 +228,7 @@ MsgLoop:
 	bsr.s ChkForProjMsgs
 	move.l (sp)+,d0				; d0=Signals
 	bsr.s ChkForSprEditorMsgs
+	rts
 ****
 * a0 - window to check for
 * d0 - bitmask of signals that occurred
