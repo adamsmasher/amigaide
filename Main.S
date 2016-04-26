@@ -5,26 +5,23 @@
 	INCLUDE "intuition/intuition.i"
 	INCLUDE "intuition/intuition_lib.i"
 
+	INCLUDE "globals.i"
 	INCLUDE "SpriteEditor.i"
 	INCLUDE "SpriteEditor_intf.i"
 
 	jmp Start
 
-; TODO: put actual globals in another module
-	SECTION Globals,BSS
+	SECTION MainVars,BSS
 ScrP:			ds.l 1
 ProjWinP:		ds.l 1
 SignalMask:		ds.l 1
 FirstSprEditor:	ds.l 1
-IntuiBase:		ds.l 1
 GfxBase:		ds.l 1
 BorderTop:		ds.w 1
 BorderLeft:		ds.b 1
 BorderRight:	ds.b 1
 BorderBottom:	ds.b 1
 QuitFlag:		ds.b 1
-
-	XDEF IntuiBase
 
 ****************
 
