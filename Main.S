@@ -375,10 +375,14 @@ NewSpriteItemHandler:
 	tst.l d0
 	beq.s .done
 .install:
-	move.l d0,a0
-	clr.l SpriteEditor_Prev(a0)
+	move.l d0,a0								; a0 = new
 	move.l FirstSprEditor,SpriteEditor_Next(a0)
-	move.l a0,FirstSprEditor
+	tst.l FirstSprEditor						; was there an oldfirst?
+	beq.s .noPrev
+	move.l FirstSprEditor,a1
+	move.l a0,SpriteEditor_Prev(a1)				; oldfirst.prev = new
+.noPrev:
+	move.l a0,FirstSprEditor					; first = new
 	move.l SpriteEditor_Window(a0),a0
 	bsr.w AddWinToSigMask
 .done:
