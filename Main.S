@@ -300,11 +300,12 @@ HandleSprEditorMsgs:
 	move.l a0,a3
 	move.l SpriteEditor_Window(a0),a0
 	move.l wd_UserPort(a0),a2
-.loop:	move.l a2,a0			; a0=UserPort
+.loop:
+	move.l a2,a0						; a0=UserPort
 	bsr.s GetAckMsg
 	tst.l d0
 	beq.s .done
-	move.l d0,a0			; a0=Msg
+	move.l d0,a0						; a0=Msg
 .dispatch:
 	move.l im_Class(a0),d0
 	cmp.l #CLOSEWINDOW,d0

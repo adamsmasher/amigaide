@@ -12,19 +12,19 @@
 NewSpriteEditor:
 	move.l a2,-(sp)
 .allocEditor:
-	moveq.l #SPRITEEDITOR_SIZEOF,d0	; allocate this many bytes
-	move.l #MEMF_CLEAR,d1		; best available local, clear it
+	moveq.l #SPRITEEDITOR_SIZEOF,d0		; allocate this many bytes
+	move.l #MEMF_CLEAR,d1				; best available local, clear it
 	move.l 4.w,a6
 	jsr _LVOAllocMem(a6)
-	tst.l d0			; success?
-	beq.s .done			; fail otherwise
-	move.l d0,a2			; a2 = SpriteEditor ptr
+	tst.l d0							; success?
+	beq.s .done							; fail otherwise
+	move.l d0,a2						; a2 = SpriteEditor ptr
 .openWindow:
 	move.l IntuiBase,a6
 	lea.l SprNewWin,a0
 	jsr _LVOOpenWindow(a6)
-	tst.l d0			; success?
-	beq.s .freeEditor		; fail if not
+	tst.l d0							; success?
+	beq.s .freeEditor					; fail if not
 	move.l d0,SpriteEditor_Window(a2)
 .updateSigMask:
 	move.l d0,a0
