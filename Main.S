@@ -102,6 +102,7 @@ Main:
 	bsr.w AddWinToSigMask
 ; jump into the main loop
 	bsr.w MainLoop
+	bsr.w CloseSpriteEditors
 .detachMenu:
 	move.l ProjWinP,a0
 	move.l IntuiBase,a6
@@ -332,6 +333,20 @@ QuitItemHandler:
 ****
 NewSpriteItemHandler:
 	bsr.w NewSpriteEditor
+	rts
+****
+CloseSpriteEditors:
+	move.l d2,-(sp)
+	move.l FirstSprEditor,d2
+	bra.s .test
+.loop:
+	move.l d2,a0
+	move.l SpriteEditor_Next(a0),d2
+	bsr.w CloseSpriteEditor
+.test:
+	tst.l d2
+	bne.s .loop
+	move.l (sp)+,d2
 	rts
 ****************
 
