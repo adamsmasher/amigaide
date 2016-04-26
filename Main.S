@@ -201,6 +201,16 @@ AddWinToSigMask:
 	or.l d0,SignalMask
 	rts
 ****
+* a0 - ptr to window to rem from sig mask
+RemWinFromSigMask:
+	move.l wd_UserPort(a0),a0
+	move.b MP_SIGBIT(a0),d1
+	moveq #1,d0
+	lsl.l d1,d0
+	not.l d0
+	and.l d0,SignalMask
+	rts
+****
 MainLoop:
 	clr.b QuitFlag
 .eventLoop:
@@ -312,8 +322,9 @@ HandleSprEditorMsgs:
 	bne.s .loop
 	move.l a3,a0						; a0 = spr editor
 	bsr.s RemoveSpriteEditor
+	move.l SpriteEditor_Window(a3),a0	; a0 = spr editor window
+	bsr.w RemWinFromSigMask
 	move.l a3,a0						; a0 = spr editor once more
-; TODO: fix up sigmask
 	bsr.w CloseSpriteEditor
 	bra.s .loop
 .done:
