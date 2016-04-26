@@ -148,7 +148,8 @@ InitPal:
 	lea.l Palette,a3
 	move.l GfxBase,a6
 	moveq #4-1,d4
-.loop:	move.l a2,a0		; a0=Viewport
+.loop:
+	move.l a2,a0		; a0=Viewport
 	move.w d4,d0		; d0=palette #
 	movem.w (a3)+,d1-d3	; d1-d3=entries
 	jsr _LVOSetRGB4(a6)
@@ -215,7 +216,7 @@ MainLoop:
 MsgLoop:
 	move.l d0,-(sp)
 	bsr.s ChkForProjMsgs
-	move.l (sp)+,d0			; d0=Signals
+	move.l (sp)+,d0				; d0=Signals
 	bsr.s ChkForSprEditorMsgs
 ****
 * a0 - window to check for
@@ -234,12 +235,13 @@ ChkForProjMsgs:
 	bsr.s ChkForWinMsgs
 	beq.s .done
 	bsr.s HandleProjMsgs
-.done:	rts
+.done:
+	rts
 ****
 * d0 - bitmask of signals that occurred
 ChkForSprEditorMsgs:
 	movem.l d2/a2,-(sp)
-	move.l d0,d2
+	move.l d0,d2							; d2 = sig set
 	move.l FirstSprEditor,a2
 	bra.s .test
 .loop:
@@ -341,12 +343,12 @@ HandleMenu:
 	move.w d0,d1
 	and.w #$001F,d1			; d1 = Menu
 	lea.l MenuHandlers,a0
-	lsl.w #2,d1			; get index in bytes
+	lsl.w #2,d1				; get index in bytes
 	move.l (a0,d1.w),a0		; a0 = Menu Handler Table
 	and.w #$07E0,d0			; isolate Menu Item
-	lsr.w #3,d0			; d0 = index in bytes
+	lsr.w #3,d0				; d0 = index in bytes
 	move.l (a0,d0.w),a0		; a0 = handler
-	jmp (a0)			; jump to routine
+	jmp (a0)				; jump to routine
 ****
 QuitItemHandler:
 	move.b #1,QuitFlag
