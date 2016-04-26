@@ -296,7 +296,7 @@ HandleProjMsgs:
 * a0 - contains ptr to sprite editor
 HandleSprEditorMsgs:
 	movem.l a2-a3,-(sp)
-	move.l a0,a3
+	move.l a0,a3						; a3=SpriteEditor
 	move.l SpriteEditor_Window(a0),a0
 	move.l wd_UserPort(a0),a2
 .loop:
