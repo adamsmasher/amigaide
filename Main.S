@@ -242,14 +242,17 @@ ChkForSprEditorMsgs:
 	move.l d0,d2
 	move.l FirstSprEditor,a2
 	bra.s .test
-.loop:	move.l SpriteEditor_Window(a2),a0
+.loop:
+	move.l SpriteEditor_Window(a2),a0
 	move.l d2,d0
 	bsr.s ChkForWinMsgs
 	beq.s .next
 	move.l a2,a0
 	bsr.s HandleSprEditorMsgs
-.next:	move.l SpriteEditor_Next(a2),a2
-.test:	cmp.l #0,a2
+.next:
+	move.l SpriteEditor_Next(a2),a2
+.test:
+	cmp.l #0,a2
 	bne.s .loop
 	movem.l (sp)+,d2/a2
 	rts
@@ -285,7 +288,8 @@ HandleProjMsgs:
 	move.w im_Code(a0),d0
 	bsr.s HandleMenu
 	bra.s .loop
-.done:	move.l (sp)+,a2
+.done:
+	move.l (sp)+,a2
 	rts
 ****
 * a0 - contains ptr to sprite editor
