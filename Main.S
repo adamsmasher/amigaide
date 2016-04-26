@@ -346,7 +346,7 @@ RemoveSpriteEditor:
 	tst.l SpriteEditor_Next(a0)
 	beq.s .done
 	move.l SpriteEditor_Next(a0),a1
-	move.l SpriteEditor_Prev(a1),SpriteEditor_Prev(a0)
+	move.l SpriteEditor_Prev(a0),SpriteEditor_Prev(a1)	; next.prev=dead.prev
 .done:
 	rts
 ****
