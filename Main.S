@@ -308,6 +308,8 @@ HandleSprEditorMsgs:
 	cmp.l #CLOSEWINDOW,d0
 	bne.s .loop
 	move.l a3,a0
+; TODO: fix up sprite list
+; TODO: fix up sigmask
 	bsr.w CloseSpriteEditor
 	bra.s .loop
 .done:	movem.l (sp)+,a2-a3
