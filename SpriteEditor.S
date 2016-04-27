@@ -111,14 +111,14 @@ SprNumGadget:
 	dc.l 0				; next gadget
 	dc.w 5,4			; left, top
 	dc.w 24,10			; width, height
-	dc.w 0				; no flags?
+	dc.w GADGHCOMP		; no flags?
 	dc.w 0				; activation?
 	dc.w GTYP_STRGADGET
 	dc.l SprNumBorder
 	dc.l 0				; no selected render
 	dc.l 0				; no text
 	dc.l 0				; no mutual exclude
-	dc.l 0				; no special info
+	dc.l SprNumInfo
 	dc.w 0				; no ID
 	dc.l 0				; no special user data
 
@@ -127,18 +127,18 @@ SprNumGadget:
 **** NewWindow
 	EVEN
 SprNewWin:
-	dc.w 20,20			; left,top
-	dc.w SPR_WIDTH,SPR_HEIGHT	; width, height
-	dc.b -1,-1			; default pens
+	dc.w 20,20										; left,top
+	dc.w SPR_WIDTH,SPR_HEIGHT						; width, height
+	dc.b -1,-1										; default pens
 	dc.l MOUSEBUTTONS!CLOSEWINDOW
 	dc.l WINDOWCLOSE!WINDOWDEPTH!WINDOWDRAG!RMBTRAP
-	dc.l 0
-	dc.l 0				; default checkmark image
+	dc.l SprNumGadget
+	dc.l 0											; default checkmark image
 	dc.l SprTitle
-	dc.l 0				; write screen ptr here
-	dc.l 0				; no bitmap
-	dc.w SPR_WIDTH,SPR_HEIGHT	; min width/height
-	dc.w SPR_WIDTH,SPR_HEIGHT	; max width/height
-	dc.w CUSTOMSCREEN		; type
+	dc.l 0											; write screen ptr here
+	dc.l 0											; no bitmap
+	dc.w SPR_WIDTH,SPR_HEIGHT						; min width/height
+	dc.w SPR_WIDTH,SPR_HEIGHT						; max width/height
+	dc.w CUSTOMSCREEN								; type
 
 	XDEF SprNewWin
