@@ -75,14 +75,14 @@ SPRNUM_HEIGHT	=10
 	EVEN
 SprNumBorderPts:
 	dc.w 0,0
-	dc.w SPRNUM_WIDTH,0
-	dc.w SPRNUM_WIDTH,SPRNUM_HEIGHT
-	dc.w 0,SPRNUM_HEIGHT
+	dc.w SPRNUM_WIDTH+3,0
+	dc.w SPRNUM_WIDTH+3,SPRNUM_HEIGHT+3
+	dc.w 0,SPRNUM_HEIGHT+3
 	dc.w 0,0
 
 SprNumBorder:
-	dc.w 0,0			; left, top
-	dc.b 3,3			; pens
+	dc.w -2,-2			; left, top
+	dc.b 1,0			; pens
 	dc.b 0				; JAM1
 	dc.b 5				; 5 points
 	dc.l SprNumBorderPts
@@ -108,7 +108,7 @@ SprNumInfo:
 SprNumGadget:
 ; TODO: add more gadgets
 	dc.l 0				; next gadget
-	dc.w 0,0			; left, top
+	dc.w 5,4			; left, top
 	dc.w 24,10			; width, height
 	dc.w 0				; no flags?
 	dc.w 0				; activation?
