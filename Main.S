@@ -119,11 +119,14 @@ SetupScr:
 	bsr.w AddBor2NewWins
 ; TODO: put me in a function
 	lea.l SprNumGadget,a0
+	lea.l SprNameGadget,a1
 	move.w BorderTop,d0
 	add.w d0,gg_TopEdge(a0)
+	add.w d0,gg_TopEdge(a1)
 	moveq.l #0,d0
 	move.b BorderLeft,d0
 	add.w d0,gg_LeftEdge(a0)
+	add.w d0,gg_LeftEdge(a1)
 	rts
 ****
 InitBorderInfo:

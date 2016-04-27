@@ -67,6 +67,60 @@ SprTitle:
 
 **** Gadgets
 
+** SprName
+
+SPRNAME_WIDTH   =72
+SPRNAME_HEIGHT  =10
+
+SprNameBorderPts:
+	dc.w 0,0
+	dc.w SPRNAME_WIDTH+3,0
+	dc.w SPRNAME_WIDTH+3,SPRNAME_HEIGHT+3
+	dc.w 0,SPRNAME_HEIGHT+3
+	dc.w 0,0
+
+SprNameBorder:
+	dc.w -2,-2
+	dc.b 1,0
+	dc.b 0
+	dc.b 5
+	dc.l SprNameBorderPts
+	dc.l 0
+
+SprNameBuf:
+	dcb.b 16,0
+
+SprNameInfo:
+	dc.l SprNameBuf
+	dc.l 0				; no undo buffer
+	dc.w 0				; buffer pos
+	dc.w 16				; max chars + NULL
+	dc.w 0				; disp pos
+	dc.w 0				; undo pos
+	dc.w 0				; numchars
+	dc.w 0				; dispcount
+	dc.w 0,0			; cleft, ctop
+	dc.l 0				; unused
+	dc.l 0				; long int
+	dc.l 0				; default key map
+
+SprNameGadget:
+	dc.l 0								; next gadget
+	dc.w 40,4							; left, top
+	dc.w SPRNAME_WIDTH,SPRNAME_HEIGHT
+	dc.w GADGHCOMP
+    dc.w 0								; flags
+	dc.w GTYP_STRGADGET
+	dc.l SprNameBorder
+	dc.l 0								; no selected render
+	dc.l 0								; no text
+	dc.l 0								; no mutual exclude
+	dc.l SprNameInfo
+	dc.w 0								; no ID
+	dc.l 0								; no special user data
+	
+	XDEF SprNameGadget
+
 ** SprNum
 
 SPRNUM_WIDTH	=24
