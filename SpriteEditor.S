@@ -91,6 +91,7 @@ SprNumBorder:
 SprNumBuf:
 	dc.l 0
 
+; TODO: you'll need to close this per sprite window
 SprNumInfo:
 	dc.l SprNumBuf
 	dc.l 0				; no undo buffer
