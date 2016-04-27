@@ -143,7 +143,7 @@ SprNumBorder:
 	dc.l 0				; no next
 
 SprNumBuf:
-	dc.l 0
+	dc.b '0',0,0,0
 
 ; TODO: you'll need to clone this per sprite window
 SprNumInfo:
@@ -153,28 +153,27 @@ SprNumInfo:
 	dc.w 4				; max chars + NULL
 	dc.w 0				; disp pos
 	dc.w 0				; undo pos
-	dc.w 0				; numchars
-	dc.w 0				; dispcount
+	dc.w 1				; numchars
+	dc.w 1				; dispcount
 	dc.w 0,0			; cleft, ctop
 	dc.l 0				; unused
 	dc.l 0				; long int
 	dc.l 0				; default key map
 
 SprNumGadget:
-; TODO: add more gadgets
-	dc.l 0				; next gadget
-	dc.w 5,4			; left, top
-	dc.w 24,10			; width, height
-	dc.w GADGHCOMP		; no flags?
-	dc.w 0				; activation?
+	dc.l SprNameGadget					; next gadget
+	dc.w 5,4							; left, top
+	dc.w SPRNUM_WIDTH,SPRNUM_HEIGHT
+	dc.w GADGHCOMP
+    dc.w GACT_STRINGRIGHT!GACT_LONGINT
 	dc.w GTYP_STRGADGET
-	dc.l SprNumBorder
-	dc.l 0				; no selected render
-	dc.l 0				; no text
-	dc.l 0				; no mutual exclude
+	dc.l SprNumBorder	
+	dc.l 0								; no selected render
+	dc.l 0								; no text
+	dc.l 0								; no mutual exclude
 	dc.l SprNumInfo
-	dc.w 0				; no ID
-	dc.l 0				; no special user data
+	dc.w 0								; no ID
+	dc.l 0								; no special user data
 
 	XDEF SprNumGadget
 
