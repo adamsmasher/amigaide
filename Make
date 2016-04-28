@@ -1,0 +1,2 @@
+blink main.o spriteeditor.o globals.o TO FracIDE
+FracIDE
