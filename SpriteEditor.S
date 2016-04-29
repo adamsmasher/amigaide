@@ -11,7 +11,7 @@
 ****************
 * returns in d0 address of new sprite editor, or NULL on failure
 NewSpriteEditor:
-	move.l a2,-(sp)
+	movem.l a2-a3,-(sp)
 .allocEditor:
 	moveq.l #SPRITEEDITOR_SIZEOF,d0		; allocate this many bytes
 	move.l #MEMF_CLEAR,d1				; best available local, clear it
@@ -19,15 +19,20 @@ NewSpriteEditor:
 	jsr _LVOAllocMem(a6)
 	tst.l d0							; success?
 	beq.s .done							; fail otherwise
-	move.l d0,a2						; a2 = SpriteEditor ptr
+	move.l d0,a3						; a3 = SpriteEditor ptr
 .openWindow:
 	move.l IntuiBase,a6
 	lea.l SprNewWin,a0
 	jsr _LVOOpenWindow(a6)
 	tst.l d0							; success?
 	beq.s .freeEditor					; fail if not
-	move.l d0,SpriteEditor_Window(a2)
-	move.l a2,d0						; return in d0
+	move.l d0,SpriteEditor_Window(a3)
+	lea.l SprNumGadget,a0
+	move.l d0,a1						; a1=Window
+	move.l #0,a2
+	move.l IntuiBase,a6
+	jsr _LVOOffGadget(a6)
+	move.l a3,d0						; return in d0
 	bra.s .done
 .freeEditor:
 	move.l a2,a1
@@ -36,7 +41,7 @@ NewSpriteEditor:
 	jsr _LVOFreeMem(a6)
 	moveq.l #0,d0						; return NULL
 .done:
-	move.l (sp)+,a2
+	movem.l (sp)+,a2-a3
 	rts
 
 	XDEF NewSpriteEditor
