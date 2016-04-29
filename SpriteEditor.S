@@ -111,7 +111,7 @@ SprNameGadget:
 	dc.w 35,4							; left, top
 	dc.w SPRNAME_WIDTH,SPRNAME_HEIGHT
 	dc.w GADGHCOMP
-    dc.w 0								; flags
+    dc.w 0								; activation
 	dc.w GTYP_STRGADGET
 	dc.l SprNameBorder
 	dc.l 0								; no selected render
