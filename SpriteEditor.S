@@ -21,12 +21,21 @@ NewSpriteEditor:
 	tst.l d0							; success?
 	beq.s .done							; fail otherwise
 	move.l d0,a3						; a3 = SpriteEditor ptr
+.allocGadget:
+	moveq.l #gg_SIZEOF,d0
+	move.l #MEMF_CLEAR,d1
+	move.l 4.w,a6
+	jsr _LVOAllocMem(a6)
+	tst.l d0
+	beq.s .freeEditor
+	lea.l SprNewWin,a0
+	move.l d0,nw_FirstGadget(a0)
 .openWindow:
 	move.l IntuiBase,a6
 	lea.l SprNewWin,a0
 	jsr _LVOOpenWindow(a6)
 	tst.l d0							; success?
-	beq.s .freeEditor					; fail if not
+	beq.s .freeGadget					; fail if not
 	move.l d0,SpriteEditor_Window(a3)
 	lea.l SprNumGadget,a0
 	move.l d0,a1						; a1=Window
@@ -35,8 +44,14 @@ NewSpriteEditor:
 	jsr _LVOOffGadget(a6)
 	move.l a3,d0						; return in d0
 	bra.s .done
+.freeGadget
+	lea.l SprNewWin,a1
+	move.l nw_FirstGadget(a1),a1
+	moveq.l #gg_SIZEOF,d0
+	move.l 4.w,a6
+	jsr _LVOFreeMem(a6)
 .freeEditor:
-	move.l a2,a1
+	move.l a3,a1						; a1=editor to free
 	moveq.l #SPRITEEDITOR_SIZEOF,d0
 	move.l 4.w,a6
 	jsr _LVOFreeMem(a6)
