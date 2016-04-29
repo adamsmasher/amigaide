@@ -43,7 +43,9 @@ NewSpriteEditor:
 	tst.l d0							; success?
 	beq.s .freeGadget					; fail if not
 	move.l d0,SpriteEditor_Window(a3)
-	lea.l SprNumGadget,a0
+.disableSpriteNum:
+	move.l d0,a0
+	move.l wd_FirstGadget(a0),a0
 	move.l d0,a1						; a1=Window
 	move.l #0,a2
 	move.l IntuiBase,a6
