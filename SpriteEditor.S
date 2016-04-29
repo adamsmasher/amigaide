@@ -10,6 +10,7 @@
 	SECTION SpriteEditor,CODE
 ****************
 * returns in d0 address of new sprite editor, or NULL on failure
+; TODO: maybe use one of the fancy bulk allocators
 NewSpriteEditor:
 	movem.l a2-a3,-(sp)
 .allocEditor:
