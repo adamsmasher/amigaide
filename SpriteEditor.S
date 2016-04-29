@@ -69,7 +69,7 @@ SprTitle:
 
 ** SprName
 
-SPRNAME_WIDTH   =72
+SPRNAME_WIDTH   =88
 SPRNAME_HEIGHT  =10
 
 	EVEN
@@ -108,7 +108,7 @@ SprNameInfo:
 
 SprNameGadget:
 	dc.l 0								; next gadget
-	dc.w 40,4							; left, top
+	dc.w 35,4							; left, top
 	dc.w SPRNAME_WIDTH,SPRNAME_HEIGHT
 	dc.w GADGHCOMP
     dc.w 0								; flags
