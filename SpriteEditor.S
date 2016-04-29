@@ -19,7 +19,7 @@ NewSpriteEditor:
 	move.l 4.w,a6
 	jsr _LVOAllocMem(a6)
 	tst.l d0							; success?
-	beq.s .done							; fail otherwise
+	beq.w .done							; fail otherwise
 	move.l d0,a3						; a3 = SpriteEditor ptr
 .allocGadget:
 	moveq.l #gg_SIZEOF,d0
@@ -30,6 +30,12 @@ NewSpriteEditor:
 	beq.s .freeEditor
 	lea.l SprNewWin,a0
 	move.l d0,nw_FirstGadget(a0)
+	lea.l SprNumGadget,a0
+	move.l d0,a1
+	moveq.l #gg_SIZEOF,d0
+	move.l 4.w,a6
+	jsr _LVOCopyMem(a6)
+; TODO: allocate and copy the sprite buffer too...
 .openWindow:
 	move.l IntuiBase,a6
 	lea.l SprNewWin,a0
