@@ -77,6 +77,7 @@ CloseSpriteEditor:
 	move.l SpriteEditor_Window(a0),a0
 	move.l IntuiBase,a6
 	jsr _LVOCloseWindow(a6)
+; TODO: deallocate the gadgets, the buffers...
 .freeEditor:
 	move.l (sp)+,a1
 	moveq.l #SPRITEEDITOR_SIZEOF,d0
