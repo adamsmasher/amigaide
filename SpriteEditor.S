@@ -72,6 +72,7 @@ SprTitle:
 SPRNAME_WIDTH   =72
 SPRNAME_HEIGHT  =10
 
+	EVEN
 SprNameBorderPts:
 	dc.w 0,0
 	dc.w SPRNAME_WIDTH+3,0
@@ -79,6 +80,7 @@ SprNameBorderPts:
 	dc.w 0,SPRNAME_HEIGHT+3
 	dc.w 0,0
 
+	EVEN
 SprNameBorder:
 	dc.w -2,-2
 	dc.b 1,0
