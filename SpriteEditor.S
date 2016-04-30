@@ -21,43 +21,44 @@ NewSpriteEditor:
 	tst.l d0							; success?
 	beq.w .done							; fail otherwise
 	move.l d0,a3						; a3 = SpriteEditor ptr
-.allocGadget:
-	moveq.l #gg_SIZEOF,d0
-	move.l #MEMF_CLEAR,d1
-	move.l 4.w,a6
-	jsr _LVOAllocMem(a6)
-	tst.l d0
-	beq.s .freeEditor
-	lea.l SprNewWin,a0
-	move.l d0,nw_FirstGadget(a0)
-	lea.l SprNumGadget,a0
-	move.l d0,a1
-	moveq.l #gg_SIZEOF,d0
+.makeEditor:
+	lea.l SprEditorTemplate,a0			; src
+	move.l a3,a1						; dest=new editor
+	moveq.l #SPRITEEDITOR_SIZEOF,d0		; size
 	move.l 4.w,a6
 	jsr _LVOCopyMem(a6)
-; TODO: allocate and copy the sprite buffer too...
+.patchEditor:
+	move.l a3,d0						; d0=spriteeditor base
+	lea.l SpriteEditor_NumGG(a3),a0
+	add.l d0,gg_NextGadget(a0)
+	add.l d0,gg_SpecialInfo(a0)
+	lea.l SpriteEditor_NumSI(a3),a0
+	add.l d0,si_Buffer(a0)
+	lea.l SpriteEditor_NameGG(a3),a0
+	add.l d0,gg_NextGadget(a0)
+	add.l d0,gg_SpecialInfo(a0)
+	lea.l SpriteEditor_NameSI(a3),a0
+	add.l d0,si_Buffer(a0)
+.patchNewWin:
+	lea.l SprNewWin,a0
+	lea.l SpriteEditor_NumGG(a3),a1
+	move.l a1,nw_FirstGadget(a0)
+	lea.l SpriteEditor_Title(a3),a1
+	move.l a1,nw_Title(a0)
 .openWindow:
 	move.l IntuiBase,a6
-	lea.l SprNewWin,a0
 	jsr _LVOOpenWindow(a6)
 	tst.l d0							; success?
-	beq.s .freeGadget					; fail if not
+	beq.s .freeEditor					; fail if not
 	move.l d0,SpriteEditor_Window(a3)
 .disableSpriteNum:
-	move.l d0,a0
-	move.l wd_FirstGadget(a0),a0
+	lea.l SpriteEditor_NumGG(a3),a0
 	move.l d0,a1						; a1=Window
-	move.l #0,a2
+	move.l #0,a2						; no requester
 	move.l IntuiBase,a6
 	jsr _LVOOffGadget(a6)
 	move.l a3,d0						; return in d0
 	bra.s .done
-.freeGadget
-	lea.l SprNewWin,a1
-	move.l nw_FirstGadget(a1),a1
-	moveq.l #gg_SIZEOF,d0
-	move.l 4.w,a6
-	jsr _LVOFreeMem(a6)
 .freeEditor:
 	move.l a3,a1						; a1=editor to free
 	moveq.l #SPRITEEDITOR_SIZEOF,d0
@@ -88,19 +89,109 @@ CloseSpriteEditor:
 
 	SECTION MyData,DATA
 ******** Sprite window
+**** Constansts
 
 SPR_WIDTH	=128
 SPR_HEIGHT	=144
 
-SprTitle:
-	dc.b "Sprite",0
-
-**** Gadgets
-
-** SprName
-
 SPRNAME_WIDTH   =88
 SPRNAME_HEIGHT  =10
+
+SPRNUM_WIDTH	=24
+SPRNUM_HEIGHT	=10
+
+**** NewWindow
+* when a new sprite editor is created, this struct is updated to refer
+* to the correct data
+	EVEN
+SprNewWin:
+	dc.w 20,20										; left,top
+	dc.w SPR_WIDTH,SPR_HEIGHT						; width, height
+	dc.b -1,-1										; default pens
+	dc.l MOUSEBUTTONS!CLOSEWINDOW
+	dc.l WINDOWCLOSE!WINDOWDEPTH!WINDOWDRAG!RMBTRAP
+	dc.l 0											; PATCH gadget
+	dc.l 0											; default checkmark image
+	dc.l 0											; PATCH title
+	dc.l 0											; PATCH screen ptr
+	dc.l 0											; no bitmap
+	dc.w SPR_WIDTH,SPR_HEIGHT						; min width/height
+	dc.w SPR_WIDTH,SPR_HEIGHT						; max width/height
+	dc.w CUSTOMSCREEN								; type
+
+**** Template
+* When a new sprite editor is created, memory for the following is
+* allocated and this is copied into it. The base pointer is then
+* added onto any relative "pointer"s in the struct
+
+SprEditorTemplate:
+	dc.l 0								; next
+	dc.l 0								; prev
+	dc.l 0								; window
+	dc.b "Sprite xxx",0					; title
+	dc.b 0								; quit
+.numGG:
+	dc.l SpriteEditor_NumGG				; next gadget
+	dc.w 5,4							; left, top
+	dc.w SPRNUM_WIDTH,SPRNUM_HEIGHT
+	dc.w GADGHCOMP
+    dc.w GACT_STRINGRIGHT!GACT_LONGINT
+	dc.w GTYP_STRGADGET
+	dc.l SprNumBorder	
+	dc.l 0								; no selected render
+	dc.l 0								; no text
+	dc.l 0								; no mutual exclude
+	dc.l SpriteEditor_NumSI
+	dc.w 0								; no ID
+	dc.l 0								; no special user data
+.numSI:
+	dc.l SpriteEditor_NumBuf
+	dc.l 0								; no undo buffer
+	dc.w 0								; buffer pos
+	dc.w 4								; max chars + NULL
+	dc.w 0								; disp pos
+	dc.w 0								; undo pos
+	dc.w 1								; numchars
+	dc.w 1								; dispcount
+	dc.w 0,0							; cleft, ctop
+	dc.l 0								; unused
+	dc.l 0								; long int
+	dc.l 0								; default key map
+.numBuf:
+	dc.b "0",0,0,0
+.nameGG:
+	dc.l 0								; next gadget
+	dc.w 35,4							; left, top
+	dc.w SPRNAME_WIDTH,SPRNAME_HEIGHT
+	dc.w GADGHCOMP
+    dc.w 0								; activation
+	dc.w GTYP_STRGADGET
+	dc.l SprNameBorder
+	dc.l 0								; no selected render
+	dc.l 0								; no text
+	dc.l 0								; no mutual exclude
+	dc.l SpriteEditor_NameSI
+	dc.w 0								; no ID
+	dc.l 0								; no special user data
+.nameSI:
+	dc.l SpriteEditor_NameBuf
+	dc.l 0								; no undo buffer
+	dc.w 0								; buffer pos
+	dc.w 16								; max chars + NULL
+	dc.w 0								; disp pos
+	dc.w 0								; undo pos
+	dc.w 0								; numchars
+	dc.w 0								; dispcount
+	dc.w 0,0							; cleft, ctop
+	dc.l 0								; unused
+	dc.l 0								; long int
+	dc.l 0								; default key map
+.nameBuf:
+	dcb.b 16,0
+	
+	XDEF SprEditorTemplate
+
+** SprName
 
 	EVEN
 SprNameBorderPts:
@@ -119,44 +210,7 @@ SprNameBorder:
 	dc.l SprNameBorderPts
 	dc.l 0
 
-SprNameBuf:
-	dcb.b 16,0
-
-SprNameInfo:
-	dc.l SprNameBuf
-	dc.l 0				; no undo buffer
-	dc.w 0				; buffer pos
-	dc.w 16				; max chars + NULL
-	dc.w 0				; disp pos
-	dc.w 0				; undo pos
-	dc.w 0				; numchars
-	dc.w 0				; dispcount
-	dc.w 0,0			; cleft, ctop
-	dc.l 0				; unused
-	dc.l 0				; long int
-	dc.l 0				; default key map
-
-SprNameGadget:
-	dc.l 0								; next gadget
-	dc.w 35,4							; left, top
-	dc.w SPRNAME_WIDTH,SPRNAME_HEIGHT
-	dc.w GADGHCOMP
-    dc.w 0								; activation
-	dc.w GTYP_STRGADGET
-	dc.l SprNameBorder
-	dc.l 0								; no selected render
-	dc.l 0								; no text
-	dc.l 0								; no mutual exclude
-	dc.l SprNameInfo
-	dc.w 0								; no ID
-	dc.l 0								; no special user data
-	
-	XDEF SprNameGadget
-
 ** SprNum
-
-SPRNUM_WIDTH	=24
-SPRNUM_HEIGHT	=10
 
 	EVEN
 SprNumBorderPts:
@@ -173,57 +227,5 @@ SprNumBorder:
 	dc.b 5				; 5 points
 	dc.l SprNumBorderPts
 	dc.l 0				; no next
-
-SprNumBuf:
-	dc.b '0',0,0,0
-
-; TODO: you'll need to clone this per sprite window
-SprNumInfo:
-	dc.l SprNumBuf
-	dc.l 0				; no undo buffer
-	dc.w 0				; buffer pos
-	dc.w 4				; max chars + NULL
-	dc.w 0				; disp pos
-	dc.w 0				; undo pos
-	dc.w 1				; numchars
-	dc.w 1				; dispcount
-	dc.w 0,0			; cleft, ctop
-	dc.l 0				; unused
-	dc.l 0				; long int
-	dc.l 0				; default key map
-
-SprNumGadget:
-	dc.l SprNameGadget					; next gadget
-	dc.w 5,4							; left, top
-	dc.w SPRNUM_WIDTH,SPRNUM_HEIGHT
-	dc.w GADGHCOMP
-    dc.w GACT_STRINGRIGHT!GACT_LONGINT
-	dc.w GTYP_STRGADGET
-	dc.l SprNumBorder	
-	dc.l 0								; no selected render
-	dc.l 0								; no text
-	dc.l 0								; no mutual exclude
-	dc.l SprNumInfo
-	dc.w 0								; no ID
-	dc.l 0								; no special user data
-
-	XDEF SprNumGadget
-
-**** NewWindow
-	EVEN
-SprNewWin:
-	dc.w 20,20										; left,top
-	dc.w SPR_WIDTH,SPR_HEIGHT						; width, height
-	dc.b -1,-1										; default pens
-	dc.l MOUSEBUTTONS!CLOSEWINDOW
-	dc.l WINDOWCLOSE!WINDOWDEPTH!WINDOWDRAG!RMBTRAP
-	dc.l SprNumGadget
-	dc.l 0											; default checkmark image
-	dc.l SprTitle
-	dc.l 0											; write screen ptr here
-	dc.l 0											; no bitmap
-	dc.w SPR_WIDTH,SPR_HEIGHT						; min width/height
-	dc.w SPR_WIDTH,SPR_HEIGHT						; max width/height
-	dc.w CUSTOMSCREEN								; type
 
 	XDEF SprNewWin

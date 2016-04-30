@@ -1,6 +1,5 @@
 ; TODO: this shouldn't be exported
-	XREF SprNumGadget
-	XREF SprNameGadget
+	XREF SprEditorTemplate
 ; TODO: or this
 	XREF SprNewWin
 	XREF NewSpriteEditor

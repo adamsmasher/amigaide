@@ -118,8 +118,9 @@ SetupScr:
 	bsr.w InsScrP2WinDefs
 	bsr.w AddBor2NewWins
 ; TODO: put me in a function
-	lea.l SprNumGadget,a0
-	lea.l SprNameGadget,a1
+	lea.l SprEditorTemplate,a0
+	lea.l SpriteEditor_NumGG(a0),a1
+	lea.l SpriteEditor_NameGG(a0),a0
 	move.w BorderTop,d0
 	add.w d0,gg_TopEdge(a0)
 	add.w d0,gg_TopEdge(a1)
