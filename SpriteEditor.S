@@ -122,6 +122,7 @@ SprNewWin:
 * allocated and this is copied into it. The base pointer is then
 * added onto any relative "pointer"s in the struct
 
+	EVEN
 SprEditorTemplate:
 	dc.l 0								; next
 	dc.l 0								; prev
