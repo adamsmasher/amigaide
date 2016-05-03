@@ -13,7 +13,7 @@
 NewSpriteEditor:
 	movem.l a2-a3,-(sp)
 .allocEditor:
-	moveq.l #SPRITEEDITOR_SIZEOF,d0		; allocate this many bytes
+	move.l #SPRITEEDITOR_SIZEOF,d0		; allocate this many bytes
 	move.l #MEMF_CLEAR,d1				; best available local, clear it
 	move.l 4.w,a6
 	jsr _LVOAllocMem(a6)
@@ -23,7 +23,7 @@ NewSpriteEditor:
 .makeEditor:
 	lea.l SprEditorTemplate,a0			; src
 	move.l a3,a1						; dest=new editor
-	moveq.l #SPRITEEDITOR_SIZEOF,d0		; size
+	move.l #SPRITEEDITOR_SIZEOF,d0		; size
 	move.l 4.w,a6
 	jsr _LVOCopyMem(a6)
 .patchEditor:
