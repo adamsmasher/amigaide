@@ -330,7 +330,7 @@ HandleSprEditorMsgs:
 	move.l SpriteEditor_Window(a3),a0	; a0 = spr editor window
 	bsr.w RemWinFromSigMask
 	move.l a3,a0						; a0 = spr editor once more
-	bsr.w CloseSpriteEditor
+	jsr CloseSpriteEditor
 	bra.s .loop
 .done:
 	movem.l (sp)+,a2-a3
