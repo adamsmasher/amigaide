@@ -78,7 +78,7 @@ CloseSpriteEditor:
 	jsr _LVOCloseWindow(a6)
 .freeEditor:
 	move.l (sp)+,a1
-	moveq.l #SPRITEEDITOR_SIZEOF,d0
+	move.l #SPRITEEDITOR_SIZEOF,d0
 	move.l 4.w,a6
 	jmp _LVOFreeMem(a6)
 
