@@ -34,7 +34,6 @@ NewSpriteEditor:
 	lea.l SpriteEditor_NumSI(a3),a0
 	add.l d0,si_Buffer(a0)
 	lea.l SpriteEditor_NameGG(a3),a0
-	add.l d0,gg_NextGadget(a0)
 	add.l d0,gg_SpecialInfo(a0)
 	lea.l SpriteEditor_NameSI(a3),a0
 	add.l d0,si_Buffer(a0)
