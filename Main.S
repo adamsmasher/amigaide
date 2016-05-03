@@ -375,7 +375,7 @@ QuitItemHandler:
 	rts
 ****
 NewSpriteItemHandler:
-	bsr.w NewSpriteEditor
+	jsr NewSpriteEditor
 	tst.l d0
 	beq.s .done
 .install:
