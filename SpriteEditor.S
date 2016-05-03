@@ -130,7 +130,7 @@ SprEditorTemplate:
 	dc.b "Sprite xxx",0					; title
 	dc.b 0								; quit
 .numGG:
-	dc.l SpriteEditor_NumGG				; next gadget
+	dc.l SpriteEditor_NameGG			; next gadget
 	dc.w 5,4							; left, top
 	dc.w SPRNUM_WIDTH,SPRNUM_HEIGHT
 	dc.w GADGHCOMP
