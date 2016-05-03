@@ -59,7 +59,7 @@ NewSpriteEditor:
 	bra.s .done
 .freeEditor:
 	move.l a3,a1						; a1=editor to free
-	moveq.l #SPRITEEDITOR_SIZEOF,d0
+	move.l #SPRITEEDITOR_SIZEOF,d0
 	move.l 4.w,a6
 	jsr _LVOFreeMem(a6)
 	moveq.l #0,d0						; return NULL
