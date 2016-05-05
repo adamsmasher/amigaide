@@ -28,15 +28,14 @@ NewSpriteEditor:
 	jsr _LVOCopyMem(a6)
 .patchEditor:
 	move.l a3,d0						; d0=spriteeditor base
-	lea.l SpriteEditor_NumGG(a3),a0
-	add.l d0,gg_NextGadget(a0)
-	add.l d0,gg_SpecialInfo(a0)
-	lea.l SpriteEditor_NumSI(a3),a0
-	add.l d0,si_Buffer(a0)
-	lea.l SpriteEditor_NameGG(a3),a0
-	add.l d0,gg_SpecialInfo(a0)
-	lea.l SpriteEditor_NameSI(a3),a0
-	add.l d0,si_Buffer(a0)
+	lea.l SprEditPatchLocs,a0
+; NB: it is INTENTIONAL that the first patch point can be 0
+	move.l (a0)+,d1						; d1=patch offset
+.patchLoop:
+	add.l d0,(a3,d1.l)					; patch
+	move.l (a0)+,d1
+	tst.l d1							; is it 0?
+	bne.s .patchLoop
 .patchNewWin:
 	lea.l SprNewWin,a0
 	lea.l SpriteEditor_NumGG(a3),a1
@@ -187,6 +186,13 @@ SprEditorTemplate:
 .nameBuf:
 	dcb.b 16,0
 	
+SprEditPatchLocs:
+	dc.l SpriteEditor_NumGG+gg_NextGadget
+	dc.l SpriteEditor_NumGG+gg_SpecialInfo
+	dc.l SpriteEditor_NumSI+si_Buffer
+	dc.l SpriteEditor_NameGG+gg_SpecialInfo
+	dc.l SpriteEditor_NameSI+si_Buffer
+
 	XDEF SprEditorTemplate
 
 ** SprName
