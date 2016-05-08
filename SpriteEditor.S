@@ -96,6 +96,9 @@ SPRNAME_HEIGHT  =10
 SPRNUM_WIDTH	=24
 SPRNUM_HEIGHT	=10
 
+PAL_WIDTH	=16
+PAL_HEIGHT	=16
+
 **** NewWindow
 * when a new sprite editor is created, this struct is updated to refer
 * to the correct data
@@ -157,7 +160,7 @@ SprEditorTemplate:
 .numBuf:
 	dc.b "0",0,0,0
 .nameGG:
-	dc.l 0								; next gadget
+	dc.l SpriteEditor_PalGGs			; next gadget
 	dc.w 35,4							; left, top
 	dc.w SPRNAME_WIDTH,SPRNAME_HEIGHT
 	dc.w GADGHCOMP
@@ -185,14 +188,73 @@ SprEditorTemplate:
 	dc.l 0								; default key map
 .nameBuf:
 	dcb.b 16,0
-	
+.palGGs0:
+	dc.l SpriteEditor_PalGGs+gg_SIZEOF	; next gadget
+	dc.w 112,32							; left, top
+	dc.w PAL_WIDTH,PAL_HEIGHT
+	dc.w GFLG_GADGHBOX
+    dc.w GACT_RELVERIFY					; activation
+	dc.w GTYP_BOOLGADGET
+	dc.l PalBorder
+	dc.l 0								; no selected render
+	dc.l 0								; no text
+	dc.l 0								; no mutual exclude
+	dc.l 0								; no special info
+	dc.w 0								; no ID
+	dc.l 0								; no special user data
+.palGGs1:
+	dc.l SpriteEditor_PalGGs+gg_SIZEOF*2; next gadget
+	dc.w 112,32+PAL_HEIGHT				; left, top
+	dc.w PAL_WIDTH,PAL_HEIGHT
+	dc.w GFLG_GADGHBOX
+    dc.w GACT_RELVERIFY					; activation
+	dc.w GTYP_BOOLGADGET
+	dc.l PalBorder
+	dc.l 0								; no selected render
+	dc.l 0								; no text
+	dc.l 0								; no mutual exclude
+	dc.l 0								; no special info
+	dc.w 0								; no ID
+	dc.l 0								; no special user data
+.palGGs2:
+	dc.l SpriteEditor_PalGGs+(gg_SIZEOF*3); next gadget
+	dc.w 112,32+(PAL_HEIGHT*2)			; left, top
+	dc.w PAL_WIDTH,PAL_HEIGHT
+	dc.w GFLG_GADGHBOX
+    dc.w GACT_RELVERIFY					; activation
+	dc.w GTYP_BOOLGADGET
+	dc.l PalBorder
+	dc.l 0								; no selected render
+	dc.l 0								; no text
+	dc.l 0								; no mutual exclude
+	dc.l 0								; no special info
+	dc.w 0								; no ID
+	dc.l 0								; no special user data
+.palGGs3:
+	dc.l 0								; next gadget
+	dc.w 112,32+(PAL_HEIGHT*3)			; left, top
+	dc.w PAL_WIDTH,PAL_HEIGHT
+	dc.w GFLG_GADGHBOX
+    dc.w GACT_RELVERIFY					; activation
+	dc.w GTYP_BOOLGADGET
+	dc.l PalBorder
+	dc.l 0								; no selected render
+	dc.l 0								; no text
+	dc.l 0								; no mutual exclude
+	dc.l 0								; no special info
+	dc.w 0								; no ID
+	dc.l 0								; no special user data
+
 SprEditPatchLocs:
 	dc.l SpriteEditor_NumGG+gg_NextGadget
 	dc.l SpriteEditor_NumGG+gg_SpecialInfo
 	dc.l SpriteEditor_NumSI+si_Buffer
+	dc.l SpriteEditor_NameGG+gg_NextGadget
 	dc.l SpriteEditor_NameGG+gg_SpecialInfo
 	dc.l SpriteEditor_NameSI+si_Buffer
-
+	dc.l SpriteEditor_PalGGs+gg_NextGadget
+	dc.l SpriteEditor_PalGGs+gg_SIZEOF+gg_NextGadget
+	dc.l SpriteEditor_PalGGs+(gg_SIZEOF*2)+gg_NextGadget
 	XDEF SprEditorTemplate
 
 ** SprName
@@ -231,5 +293,23 @@ SprNumBorder:
 	dc.b 5				; 5 points
 	dc.l SprNumBorderPts
 	dc.l 0				; no next
+
+** Pal
+
+	EVEN
+PalBorderPts:
+	dc.w 0,0
+	dc.w PAL_WIDTH+1,0
+	dc.w PAL_WIDTH+1,PAL_HEIGHT+1
+	dc.w 0,PAL_HEIGHT+1
+	dc.w 0,0
+
+PalBorder:
+	dc.w -1,-1
+	dc.b 1,0
+	dc.b 0
+	dc.b 5
+	dc.l PalBorderPts
+	dc.l 0
 
 	XDEF SprNewWin
