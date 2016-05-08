@@ -1,5 +1,7 @@
 	INCLUDE "exec/exec.i"
 	INCLUDE "exec/exec_lib.i"
+	INCLUDE "graphics/gfx.i"
+	INCLUDE "graphics/graphics_lib.i"
 	INCLUDE "intuition/intuition.i"
 	INCLUDE "intuition/intuition_lib.i"
 
@@ -54,6 +56,11 @@ NewSpriteEditor:
 	move.l #0,a2						; no requester
 	move.l IntuiBase,a6
 	jsr _LVOOffGadget(a6)
+.drawPal:
+	move.l SpriteEditor_Window(a3),a0
+	move.l wd_RPort(a0),a0
+	bsr.s DrawPal
+.finish:
 	move.l a3,d0						; return in d0
 	bra.s .done
 .freeEditor:
@@ -67,6 +74,33 @@ NewSpriteEditor:
 	rts
 
 	XDEF NewSpriteEditor
+****************
+* a0 - ptr to rastport
+DrawPal:
+	movem.l d2-d4/a2,-(sp)
+	move.l a0,a2						; a2=rastport
+	moveq.l #(4-1),d4					; d4=counter
+	move.w #112,d0						; d0=left
+	move.w #32,d1						; d1=top
+	move.w #127,d2						; d2=right
+	move.w #47,d3						; d3=bottom
+.loop:
+	movem.l d0-d1,-(sp)
+	move.l a2,a1						; a1=rastport
+	move.b d4,d0						; d0=color
+	move.l GfxBase,a6
+	jsr _LVOSetAPen(a6)
+	movem.l (sp)+,d0-d1
+	movem.l d0-d3,-(sp)
+	move.l a2,a1						; a1=rastport
+	move.l GfxBase,a6
+	jsr _LVORectFill(a6)
+	movem.l (sp)+,d0-d3
+	add.w #16,d1						; top += 16
+	add.w #16,d3						; bottom += 16
+	dbra d4,.loop
+	movem.l (sp)+,d2-d4/a2
+	rts
 ****************
 * a0 - ptr to SpriteEditor
 CloseSpriteEditor:
