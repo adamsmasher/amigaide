@@ -60,6 +60,8 @@ NewSpriteEditor:
 	move.l SpriteEditor_Window(a3),a0
 	move.l wd_RPort(a0),a0
 	bsr.s DrawPal
+	move.l a3,a0						; a0=Sprite Editor
+	bsr.s DrawPen
 .finish:
 	move.l a3,d0						; return in d0
 	bra.s .done
@@ -100,6 +102,47 @@ DrawPal:
 	add.w #PAL_HEIGHT,d3				; bottom += PAL_HEIGHT
 	dbra d4,.loop
 	movem.l (sp)+,d2-d4/a2
+	rts
+****************
+* a0 - ptr to SpriteEditor
+DrawPen:
+	move.l a0,-(sp)
+	move.l SpriteEditor_Window(a0),a1
+	move.l wd_RPort(a1),a1
+	bsr.s DrawPenBg
+	move.l (sp)+,a0
+	movem.l d2-d3/a2,-(sp)
+	move.b SpriteEditor_Pen(a0),d0
+	move.l SpriteEditor_Window(a0),a0
+	move.l wd_RPort(a0),a2
+	move.l a2,a1						; a1=rport
+	move.l GfxBase,a6
+	jsr _LVOSetAPen(a6)
+	move.w #PEN_LEFT,d0
+	move.w #PEN_TOP,d1
+	move.w #(PEN_LEFT+PEN_WIDTH),d2
+	move.w #(PEN_TOP+PEN_HEIGHT),d3
+	move.l a2,a1						; a1=rport
+	move.l GfxBase,a6
+	jsr _LVORectFill(a6)
+	movem.l (sp)+,d2-d3/a2
+	rts
+****************
+* a1 - ptr to RPort
+DrawPenBg:
+	movem.l d2-d3,-(sp)
+	moveq.l #3,d0						; black
+	move.l GfxBase,a6
+	move.l a1,-(sp)						; save rport
+	jsr _LVOSetAPen(a6)
+	move.l (sp)+,a1						; a1=rport
+	move.w #PEN_LEFT-1,d0
+	move.w #PEN_TOP-1,d1
+	move.w #(PEN_LEFT+PEN_WIDTH+1),d2
+	move.w #(PEN_TOP+PEN_HEIGHT+1),d3
+	move.l GfxBase,a6
+	jsr _LVORectFill(a6)
+	movem.l (sp)+,d2-d3
 	rts
 ****************
 * a0 - ptr to SpriteEditor
