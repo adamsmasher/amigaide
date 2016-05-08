@@ -85,7 +85,7 @@ CloseSpriteEditor:
 
 	SECTION MyData,DATA
 ******** Sprite window
-**** Constansts
+**** Constants
 
 SPR_WIDTH	=128
 SPR_HEIGHT	=144
