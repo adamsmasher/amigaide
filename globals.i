@@ -2,3 +2,4 @@
 
 ; vars
 	XREF IntuiBase
+	XREF GfxBase

@@ -16,7 +16,6 @@ ScrP:			ds.l 1
 ProjWinP:		ds.l 1
 SignalMask:		ds.l 1
 FirstSprEditor:	ds.l 1
-GfxBase:		ds.l 1
 BorderTop:		ds.w 1
 BorderLeft:		ds.b 1
 BorderRight:	ds.b 1
