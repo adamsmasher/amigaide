@@ -80,10 +80,10 @@ DrawPal:
 	movem.l d2-d4/a2,-(sp)
 	move.l a0,a2						; a2=rastport
 	moveq.l #(4-1),d4					; d4=counter
-	move.w #112,d0						; d0=left
-	move.w #32,d1						; d1=top
-	move.w #127,d2						; d2=right
-	move.w #47,d3						; d3=bottom
+	move.w #PAL_LEFT,d0					; d0=left
+	move.w #PAL_TOP,d1					; d1=top
+	move.w #(PAL_LEFT+PAL_WIDTH-1),d2	; d2=right
+	move.w #(PAL_TOP+PAL_HEIGHT-1),d3	; d3=bottom
 .loop:
 	movem.l d0-d1,-(sp)
 	move.l a2,a1						; a1=rastport
@@ -96,8 +96,8 @@ DrawPal:
 	move.l GfxBase,a6
 	jsr _LVORectFill(a6)
 	movem.l (sp)+,d0-d3
-	add.w #16,d1						; top += 16
-	add.w #16,d3						; bottom += 16
+	add.w #PAL_HEIGHT,d1				; top += PAL_HEIGHT
+	add.w #PAL_HEIGHT,d3				; bottom += PAL_HEIGHT
 	dbra d4,.loop
 	movem.l (sp)+,d2-d4/a2
 	rts
@@ -132,6 +132,13 @@ SPRNUM_HEIGHT	=10
 
 PAL_WIDTH	=16
 PAL_HEIGHT	=16
+PAL_LEFT	=112
+PAL_TOP		=32
+
+PEN_LEFT	=PAL_LEFT
+PEN_TOP		=112
+PEN_WIDTH	=PAL_WIDTH
+PEN_HEIGHT	=PAL_HEIGHT
 
 **** NewWindow
 * when a new sprite editor is created, this struct is updated to refer
@@ -224,7 +231,7 @@ SprEditorTemplate:
 	dcb.b 16,0
 .palGGs0:
 	dc.l SpriteEditor_PalGGs+gg_SIZEOF	; next gadget
-	dc.w 112,32							; left, top
+	dc.w PAL_LEFT,PAL_TOP					; left, top
 	dc.w PAL_WIDTH,PAL_HEIGHT
 	dc.w GFLG_GADGHBOX
     dc.w GACT_RELVERIFY					; activation
@@ -238,7 +245,7 @@ SprEditorTemplate:
 	dc.l 0								; no special user data
 .palGGs1:
 	dc.l SpriteEditor_PalGGs+gg_SIZEOF*2; next gadget
-	dc.w 112,32+PAL_HEIGHT				; left, top
+	dc.w PAL_LEFT,PAL_TOP+PAL_HEIGHT	; left, top
 	dc.w PAL_WIDTH,PAL_HEIGHT
 	dc.w GFLG_GADGHBOX
     dc.w GACT_RELVERIFY					; activation
@@ -252,7 +259,7 @@ SprEditorTemplate:
 	dc.l 0								; no special user data
 .palGGs2:
 	dc.l SpriteEditor_PalGGs+(gg_SIZEOF*3); next gadget
-	dc.w 112,32+(PAL_HEIGHT*2)			; left, top
+	dc.w PAL_LEFT,PAL_TOP+(PAL_HEIGHT*2); left, top
 	dc.w PAL_WIDTH,PAL_HEIGHT
 	dc.w GFLG_GADGHBOX
     dc.w GACT_RELVERIFY					; activation
@@ -266,7 +273,7 @@ SprEditorTemplate:
 	dc.l 0								; no special user data
 .palGGs3:
 	dc.l 0								; next gadget
-	dc.w 112,32+(PAL_HEIGHT*3)			; left, top
+	dc.w PAL_LEFT,PAL_TOP+(PAL_HEIGHT*3); left, top
 	dc.w PAL_WIDTH,PAL_HEIGHT
 	dc.w GFLG_GADGHBOX
     dc.w GACT_RELVERIFY					; activation
