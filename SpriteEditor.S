@@ -208,8 +208,8 @@ PEN_TOP		=112
 PEN_WIDTH	=PAL_WIDTH
 PEN_HEIGHT	=PAL_HEIGHT
 
-PX_LEFT		=5
-PX_TOP		=16
+PX_LEFT		=9
+PX_TOP		=32
 PX_WIDTH	=4
 PX_HEIGHT	=4
 
@@ -450,10 +450,10 @@ PalBorder:
 	EVEN
 PxBorderPts:
 	dc.w -1,-1
-	dc.w PX_WIDTH+1,0
+	dc.w PX_WIDTH+1,-1
 	dc.w PX_WIDTH+1,PX_HEIGHT+1
-	dc.w 0,PX_HEIGHT+1
-	dc.w 0,0
+	dc.w -1,PX_HEIGHT+1
+	dc.w -1,-1
 
 PxBorder:
 	dc.w -1,-1
