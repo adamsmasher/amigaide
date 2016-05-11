@@ -12,39 +12,58 @@
 	SECTION SpriteEditor,CODE
 ****************
 * returns in d0 address of new sprite editor, or NULL on failure
-NewSpriteEditor:
-	movem.l a2-a3,-(sp)
-.allocEditor:
+AllocEditor:
 	move.l #SPRITEEDITOR_SIZEOF,d0		; allocate this many bytes
 	move.l #MEMF_CLEAR,d1				; best available local, clear it
 	move.l 4.w,a6
-	jsr _LVOAllocMem(a6)
+	jmp _LVOAllocMem(a6)
+****************
+* a1 - ptr to SpriteEditor memory
+MakeEditor:
+	lea.l SprEditorTemplate,a0			; src
+	move.l #SPRITEEDITOR_SIZEOF,d0		; size
+	move.l 4.w,a6
+	jmp _LVOCopyMem(a6)
+****************
+* a0 - ptr to SpriteEditor
+PatchEditorOffsets:
+	move.l a0,d0						; d0=spriteeditor base
+	lea.l SprEditPatchLocs,a1
+; NB: it is INTENTIONAL that the first patch point can be 0
+	move.l (a1)+,d1						; d1=patch offset
+.loop:
+	add.l d0,(a0,d1.l)					; patch
+	move.l (a1)+,d1
+	tst.l d1							; is it 0?
+	bne.s .loop
+	rts
+****************
+* a0 - ptr to SpriteEdit ptr
+PatchNewWin:
+	lea.l SprNewWin,a1
+	move.l a0,-(sp)
+	lea.l SpriteEditor_NumGG(a0),a0
+	move.l a0,nw_FirstGadget(a1)
+	move.l (sp)+,a0						; a0 = sprite editor ptr
+	lea.l SpriteEditor_Title(a0),a0
+	move.l a1,nw_Title(a1)
+	rts
+****************
+* returns in d0 address of new sprite editor, or NULL on failure
+NewSpriteEditor:
+	movem.l a2-a3,-(sp)
+	bsr.s AllocEditor
 	tst.l d0							; success?
 	beq.w .done							; fail otherwise
 	move.l d0,a3						; a3 = SpriteEditor ptr
-.makeEditor:
-	lea.l SprEditorTemplate,a0			; src
-	move.l a3,a1						; dest=new editor
-	move.l #SPRITEEDITOR_SIZEOF,d0		; size
-	move.l 4.w,a6
-	jsr _LVOCopyMem(a6)
-.patchEditor:
-	move.l a3,d0						; d0=spriteeditor base
-	lea.l SprEditPatchLocs,a0
-; NB: it is INTENTIONAL that the first patch point can be 0
-	move.l (a0)+,d1						; d1=patch offset
-.patchLoop:
-	add.l d0,(a3,d1.l)					; patch
-	move.l (a0)+,d1
-	tst.l d1							; is it 0?
-	bne.s .patchLoop
-.patchNewWin:
-	lea.l SprNewWin,a0
-	lea.l SpriteEditor_NumGG(a3),a1
-	move.l a1,nw_FirstGadget(a0)
-	lea.l SpriteEditor_Title(a3),a1
-	move.l a1,nw_Title(a0)
+	move.l a3,a1						; a1 = SpriteEditor ptr
+	bsr.s MakeEditor
+	move.l a3,a0						; a0 = SpriteEditor ptr
+	bsr.s PatchEditorOffsets
+	move.l a3,a0						; a0 = SpriteEditor ptr
+	bsr.s PatchNewWin
 .openWindow:
+	lea.l SprNewWin,a0
 	move.l IntuiBase,a6
 	jsr _LVOOpenWindow(a6)
 	tst.l d0							; success?
