@@ -302,7 +302,7 @@ HandleProjMsgs:
 	bra.s .loop
 .menuPick:
 	move.w im_Code(a0),d0
-	bsr.s HandleMenu
+	bsr.w HandleMenu
 	bra.s .loop
 .done:
 	move.l (sp)+,a2
@@ -322,14 +322,24 @@ HandleSprEditorMsgs:
 	move.l d0,a0						; a0=Msg
 .dispatch:
 	move.l im_Class(a0),d0
-	cmp.l #CLOSEWINDOW,d0
-	bne.s .loop
+	cmp.l #IDCMP_CLOSEWINDOW,d0
+	beq.s .closeWindow
+	cmp.l #IDCMP_GADGETUP,d0
+	beq.s .onClick
+	bra.s .loop
+.closeWindow:
 	move.l a3,a0						; a0 = spr editor
 	bsr.s RemoveSpriteEditor
 	move.l SpriteEditor_Window(a3),a0	; a0 = spr editor window
 	bsr.w RemWinFromSigMask
 	move.l a3,a0						; a0 = spr editor once more
 	jsr CloseSpriteEditor
+	bra.s .loop
+.onClick:
+	move.l im_IAddress(a0),a0			; a0 = gadget clicked
+	move.w gg_GadgetID(a0),d0
+	move.l a3,a0						; a0 = sprite editor
+	jsr SetSpriteEditorPen
 	bra.s .loop
 .done:
 	movem.l (sp)+,a2-a3
@@ -548,9 +558,9 @@ SpritesMenu:
 
 ProjMenu:
 	dc.l SpritesMenu		; next menu
-	dc.w 2,0			; left, top
-	dc.w 80				; width
-	dc.w 10				; height
+	dc.w 2,0				; left, top
+	dc.w 80					; width
+	dc.w 10					; height
 	dc.w MENUENABLED		; flags
 	dc.l ProjStr			; text
 	dc.l ExitMenuItem		; first item

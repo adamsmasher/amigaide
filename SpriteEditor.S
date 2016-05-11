@@ -60,6 +60,9 @@ NewSpriteEditor:
 	move.l SpriteEditor_Window(a3),a0
 	move.l wd_RPort(a0),a0
 	bsr.s DrawPal
+	move.l SpriteEditor_Window(a3),a1
+	move.l wd_RPort(a1),a1
+	bsr.w DrawPenBg
 	move.l a3,a0						; a0=Sprite Editor
 	bsr.s DrawPen
 .finish:
@@ -106,11 +109,6 @@ DrawPal:
 ****************
 * a0 - ptr to SpriteEditor
 DrawPen:
-	move.l a0,-(sp)
-	move.l SpriteEditor_Window(a0),a1
-	move.l wd_RPort(a1),a1
-	bsr.s DrawPenBg
-	move.l (sp)+,a0
 	movem.l d2-d3/a2,-(sp)
 	move.b SpriteEditor_Pen(a0),d0
 	move.l SpriteEditor_Window(a0),a0
@@ -144,6 +142,14 @@ DrawPenBg:
 	jsr _LVORectFill(a6)
 	movem.l (sp)+,d2-d3
 	rts
+****************
+* a0 - ptr to SpriteEditor
+* d0 - new pen colour
+SetSpriteEditorPen:
+	move.b d0,SpriteEditor_Pen(a0)
+	bsr.w DrawPen
+	rts
+ XDEF SetSpriteEditorPen
 ****************
 * a0 - ptr to SpriteEditor
 CloseSpriteEditor:
@@ -191,8 +197,8 @@ SprNewWin:
 	dc.w 20,20										; left,top
 	dc.w SPR_WIDTH,SPR_HEIGHT						; width, height
 	dc.b -1,-1										; default pens
-	dc.l MOUSEBUTTONS!CLOSEWINDOW
-	dc.l WINDOWCLOSE!WINDOWDEPTH!WINDOWDRAG!RMBTRAP
+	dc.l CLOSEWINDOW!GADGETUP
+	dc.l WINDOWCLOSE!WINDOWDEPTH!WINDOWDRAG
 	dc.l 0											; PATCH gadget
 	dc.l 0											; default checkmark image
 	dc.l 0											; PATCH title
@@ -274,7 +280,7 @@ SprEditorTemplate:
 	dcb.b 16,0
 .palGGs0:
 	dc.l SpriteEditor_PalGGs+gg_SIZEOF	; next gadget
-	dc.w PAL_LEFT,PAL_TOP					; left, top
+	dc.w PAL_LEFT,PAL_TOP				; left, top
 	dc.w PAL_WIDTH,PAL_HEIGHT
 	dc.w GFLG_GADGHBOX
     dc.w GACT_RELVERIFY					; activation
@@ -284,7 +290,7 @@ SprEditorTemplate:
 	dc.l 0								; no text
 	dc.l 0								; no mutual exclude
 	dc.l 0								; no special info
-	dc.w 0								; no ID
+	dc.w 3								; pen colour 3
 	dc.l 0								; no special user data
 .palGGs1:
 	dc.l SpriteEditor_PalGGs+gg_SIZEOF*2; next gadget
@@ -298,7 +304,7 @@ SprEditorTemplate:
 	dc.l 0								; no text
 	dc.l 0								; no mutual exclude
 	dc.l 0								; no special info
-	dc.w 0								; no ID
+	dc.w 2								; pen colour 2
 	dc.l 0								; no special user data
 .palGGs2:
 	dc.l SpriteEditor_PalGGs+(gg_SIZEOF*3); next gadget
@@ -312,7 +318,7 @@ SprEditorTemplate:
 	dc.l 0								; no text
 	dc.l 0								; no mutual exclude
 	dc.l 0								; no special info
-	dc.w 0								; no ID
+	dc.w 1								; pen colour 1
 	dc.l 0								; no special user data
 .palGGs3:
 	dc.l 0								; next gadget
@@ -326,7 +332,7 @@ SprEditorTemplate:
 	dc.l 0								; no text
 	dc.l 0								; no mutual exclude
 	dc.l 0								; no special info
-	dc.w 0								; no ID
+	dc.w 0								; pen colour 0
 	dc.l 0								; no special user data
 
 SprEditPatchLocs:
