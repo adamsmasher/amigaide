@@ -189,6 +189,11 @@ PEN_TOP		=112
 PEN_WIDTH	=PAL_WIDTH
 PEN_HEIGHT	=PAL_HEIGHT
 
+PX_LEFT		=5
+PX_TOP		=16
+PX_WIDTH	=4
+PX_HEIGHT	=4
+
 **** NewWindow
 * when a new sprite editor is created, this struct is updated to refer
 * to the correct data
@@ -334,6 +339,23 @@ SprEditorTemplate:
 	dc.l 0								; no special info
 	dc.w 0								; pen colour 0
 	dc.l 0								; no special user data
+	
+PX_ID_BASE	=4
+
+PxGGTmpl:
+	dc.l 0								; next gadget
+	dc.w PX_LEFT,PX_TOP					; left, top
+	dc.w PX_WIDTH,PX_HEIGHT
+	dc.w GFLG_GADGHNONE					; don't highlight on click
+	dc.w GACT_IMMEDIATE
+	dc.w GTYP_BOOLGADGET
+	dc.l PxBorder
+	dc.l 0								; no selected render
+	dc.l 0								; no text
+	dc.l 0								; no mutual exclude
+	dc.l 0								; no special info
+	dc.l PX_ID_BASE
+	dc.l 0								; no special user data
 
 SprEditPatchLocs:
 	dc.l SpriteEditor_NumGG+gg_NextGadget
@@ -403,3 +425,21 @@ PalBorder:
 	dc.l 0
 
 	XDEF SprNewWin
+
+** Px
+
+	EVEN
+PxBorderPts:
+	dc.w -1,-1
+	dc.w PX_WIDTH+1,0
+	dc.w PX_WIDTH+1,PX_HEIGHT+1
+	dc.w 0,PX_HEIGHT+1
+	dc.w 0,0
+
+PxBorder:
+	dc.w -1,-1
+	dc.b 1,0
+	dc.b 0
+	dc.b 5
+	dc.l PxBorderPts
+	dc.l 0
