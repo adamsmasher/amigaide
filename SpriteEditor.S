@@ -162,6 +162,40 @@ DrawPenBg:
 	movem.l (sp)+,d2-d3
 	rts
 ****************
+* d0 - returns the address of the PxGGs on success, otherwise 0
+MakePxGGs:
+	; TODO: this will vary based on the sprite
+	move.l #(256*gg_SIZEOF),d0
+	move.l #MEMF_CLEAR,d1
+	move.l 4.w,a6
+	jsr _LVOAllocMem(a6)
+	tst.l d0
+	beq.s .done
+	move.l d0,a1						; a1=gadget base
+	lea.l PxGGTmpl,a0
+	move.l d0,gg_NextGadget(a0)			; patch in start of list
+	; TODO: this will vary based on the sprite
+	move.w #(256-1),d2
+.loop:
+	move.l #gg_SIZEOF,d0
+	move.l 4.w,a6
+	move.l a1,-(sp)
+	jsr _LVOCopyMem(a6)
+	move.l (sp),a0					; a0 = old dest
+	bsr.s PatchPxGG
+	move.l (sp)+,a0					; a0 = old dest = new source
+	move.l a0,a1					; a1 = old dest...
+	add.l #gg_SIZEOF,a1				; a1 = new dest = old_dest + gg_SIZEOF
+	dbra d2,.loop
+.done:
+	rts
+****************
+* a0 - pointer to GG to patch
+PatchPxGG:
+	add.l #gg_SIZEOF,gg_NextGadget(a0)
+	addq.w #1,gg_GadgetID(a0)
+	rts
+****************
 * a0 - ptr to SpriteEditor
 * d0 - new pen colour
 SetSpriteEditorPen:
