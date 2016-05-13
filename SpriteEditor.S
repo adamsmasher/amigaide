@@ -62,6 +62,9 @@ NewSpriteEditor:
 	bsr.s PatchEditorOffsets
 	move.l a3,a0						; a0 = SpriteEditor ptr
 	bsr.s PatchNewWin
+	bsr.w MakePxGGs
+	move.l d0,a0
+	bsr.w ArrangePxGGs
 .openWindow:
 	lea.l SprNewWin,a0
 	move.l IntuiBase,a6
@@ -196,6 +199,27 @@ MakePxGGs:
 PatchPxGG:
 	add.l #gg_SIZEOF,gg_NextGadget(a0)
 	addq.w #1,gg_GadgetID(a0)
+	rts
+****************
+* a0 - pointer to PxGGs
+ArrangePxGGs:
+	movem.l d2-d3,-(sp)
+	; TODO: this will vary
+	moveq #15,d3							; d3 = row counter
+	move.w #PX_TOP,d1
+.rowLoop:
+	; TODO: this will vary
+	moveq #15,d2							; d2 = column counter
+	move.w #PX_LEFT,d0
+.loop:
+	move.w d0,gg_LeftEdge(a0)
+	move.w d1,gg_TopEdge(a0)
+	move.l gg_NextGadget(a0),a0
+	add.w #PX_WIDTH,d0
+	dbra d2,.loop
+	add.w #PX_HEIGHT,d1
+	dbra d3,.rowLoop
+	movem.l (sp)+,d2-d3
 	rts
 ****************
 * a0 - ptr to SpriteEditor
