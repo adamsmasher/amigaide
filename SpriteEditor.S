@@ -409,7 +409,7 @@ PxGGTmpl:
 	dc.l 0								; no text
 	dc.l 0								; no mutual exclude
 	dc.l 0								; no special info
-	dc.l PX_ID_BASE
+	dc.l PX_ID_BASE-1
 	dc.l 0								; no special user data
 
 SprEditPatchLocs:
