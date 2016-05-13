@@ -171,6 +171,7 @@ MakePxGGs:
 	jsr _LVOAllocMem(a6)
 	tst.l d0
 	beq.s .done
+	move.l d0,-(sp)
 	move.l d0,a1						; a1=gadget base
 	lea.l PxGGTmpl,a0
 	move.l d0,gg_NextGadget(a0)			; patch in start of list
@@ -188,6 +189,7 @@ MakePxGGs:
 	add.l #gg_SIZEOF,a1				; a1 = new dest = old_dest + gg_SIZEOF
 	dbra d2,.loop
 .done:
+	move.l (sp)+,d0
 	rts
 ****************
 * a0 - pointer to GG to patch
