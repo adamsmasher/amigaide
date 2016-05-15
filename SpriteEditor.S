@@ -88,7 +88,22 @@ NewSpriteEditor:
 	move.l wd_RPort(a1),a1
 	bsr.w DrawPenBg
 	move.l a3,a0						; a0=Sprite Editor
-	bsr.s DrawPen
+	bsr.w DrawPen
+.addPxGGs:
+	move.l SpriteEditor_Window(a3),a0
+	move.l SpriteEditor_PxGGs(a3),a1
+	move.l #~0,d0						; add to end of list
+	; TODO: this will vary
+	move.l #256,d1						; add 256 gadgets
+	move.l #0,a2						; no requester
+	move.l IntuiBase,a6
+	jsr _LVOAddGList(a6)
+	move.l SpriteEditor_PxGGs(a3),a0
+	move.l SpriteEditor_Window(a3),a1
+	move.l #0,a2						; no requester
+	move.l #-1,d0						; refresh to end
+	move.l IntuiBase,a6
+	jsr _LVORefreshGList(a6)
 .finish:
 	move.l a3,d0						; return in d0
 	bra.s .done
