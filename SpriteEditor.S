@@ -63,6 +63,8 @@ NewSpriteEditor:
 	move.l a3,a0						; a0 = SpriteEditor ptr
 	bsr.s PatchNewWin
 	bsr.w MakePxGGs
+	; TODO: handle failure case here
+	move.l d0,SpriteEditor_PxGGs(a3)
 	move.l d0,a0
 	bsr.w ArrangePxGGs
 .openWindow:
@@ -418,6 +420,11 @@ SprEditorTemplate:
 	dc.l 0								; no special info
 	dc.w 0								; pen colour 0
 	dc.l 0								; no special user data
+.pen:
+	dc.b 0
+	dc.b 0								; unused
+.pxGGs:
+	dc.l 0
 	
 PX_ID_BASE	=4
 
