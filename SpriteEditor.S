@@ -233,9 +233,9 @@ ArrangePxGGs:
 	move.w d0,gg_LeftEdge(a0)
 	move.w d1,gg_TopEdge(a0)
 	move.l gg_NextGadget(a0),a0
-	add.w #PX_WIDTH,d0
+	add.w #PX_WIDTH+2,d0
 	dbra d2,.loop
-	add.w #PX_HEIGHT,d1
+	add.w #PX_HEIGHT+2,d1
 	dbra d3,.rowLoop
 	movem.l (sp)+,d2-d3
 	rts
@@ -282,12 +282,12 @@ PAL_LEFT	=112
 PAL_TOP		=32
 
 PEN_LEFT	=PAL_LEFT
-PEN_TOP		=112
+PEN_TOP		=110
 PEN_WIDTH	=PAL_WIDTH
 PEN_HEIGHT	=PAL_HEIGHT
 
 PX_LEFT		=9
-PX_TOP		=32
+PX_TOP		=33
 PX_WIDTH	=4
 PX_HEIGHT	=4
 
