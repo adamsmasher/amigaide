@@ -275,10 +275,10 @@ PxClicked:
 	and.w #$000F,d0							; d0 = column
 	lsr.w #4,d1								; d1 = row
 	move.w d0,d2							; d2 = column
-	lsl.w #3,d0								; d0 = column px offset
+	lsl.w #2,d0								; d0 = column px offset
 	add.w d2,d0								; ...
 	move.w d1,d2							; d2 = row
-	lsl.w #3,d1								; d1 = row px
+	lsl.w #2,d1								; d1 = row px
 	add.w d2,d1								; ...
 	add.w #PX_LEFT,d0
 	add.w #PX_TOP,d1
