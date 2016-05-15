@@ -38,7 +38,7 @@ PatchEditorOffsets:
 	bne.s .loop
 	rts
 ****************
-* a0 - ptr to SpriteEdit ptr
+* a0 - ptr to SpriteEditor
 PatchNewWin:
 	lea.l SprNewWin,a1
 	move.l a0,-(sp)
