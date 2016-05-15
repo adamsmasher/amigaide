@@ -255,7 +255,14 @@ CloseSpriteEditor:
 	move.l SpriteEditor_Window(a0),a0
 	move.l IntuiBase,a6
 	jsr _LVOCloseWindow(a6)
-.freeEditor:
+.freePxGGs
+	move.l (sp),a1						; a1 = sprite editor
+	move.l SpriteEditor_PxGGs(a1),a1
+	; TODO: this will change
+	move.l #256,d0
+	move.l 4.w,a6
+	jsr _LVOFreeMem(a6)
+.freeEditor:							; a1 = sprite editor
 	move.l (sp)+,a1
 	move.l #SPRITEEDITOR_SIZEOF,d0
 	move.l 4.w,a6
