@@ -324,8 +324,10 @@ HandleSprEditorMsgs:
 	move.l im_Class(a0),d0
 	cmp.l #IDCMP_CLOSEWINDOW,d0
 	beq.s .closeWindow
+	cmp.l #IDCMP_GADGETDOWN,d0
+	beq.s .onGadgetDown
 	cmp.l #IDCMP_GADGETUP,d0
-	beq.s .onClick
+	beq.s .onGadgetUp
 	bra.s .loop
 .closeWindow:
 	move.l a3,a0						; a0 = spr editor
@@ -335,10 +337,15 @@ HandleSprEditorMsgs:
 	move.l a3,a0						; a0 = spr editor once more
 	jsr CloseSpriteEditor
 	bra.s .loop
-.onClick:
+.onGadgetDown:
 	move.l im_IAddress(a0),a1			; a1 = gadget clicked
 	move.l a3,a0						; a0 = sprite editor
-	jsr SpriteEditorOnClick
+	jsr SpriteEditorGadgetDown
+	bra.s .loop
+.onGadgetUp:
+	move.l im_IAddress(a0),a1			; a1 = gadget clicked
+	move.l a3,a0						; a0 = sprite editor
+	jsr SpriteEditorGadgetUp
 	bra.s .loop
 .done:
 	movem.l (sp)+,a2-a3

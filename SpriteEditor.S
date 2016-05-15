@@ -242,13 +242,21 @@ ArrangePxGGs:
 ****************
 * a0 - ptr to SpriteEditor
 * a1 - ptr to gadget clicked
-SpriteEditorOnClick:
+SpriteEditorGadgetUp:
 	move.w gg_GadgetID(a1),d0
 	cmp.w #4,d0								; is this a pal button?
 	blt.s SetSpriteEditorPen
-	subq #4,d0
-	bra.s PxClicked
- XDEF SpriteEditorOnClick
+	rts
+ XDEF SpriteEditorGadgetUp
+****************
+* a0 - ptr to SpriteEditor
+* a1 - ptr to gadget clicked
+SpriteEditorGadgetDown:
+	move.w gg_GadgetID(a1),d0
+	cmp.w #4,d0								; is this a px?
+	bge.w PxClicked
+	rts
+ XDEF SpriteEditorGadgetDown
 ****************
 * a0 - ptr to SpriteEditor
 * d0 - new pen colour
@@ -258,9 +266,10 @@ SetSpriteEditorPen:
 	rts
 ****************
 * a0 - ptr to SpriteEditor
-* d0 - number of px clicked
+* d0 - ID number of px clicked
 PxClicked:
 	movem.l d2-d3,-(sp)
+	sub.w #PX_ID_BASE,d0
 	move.w d0,d1							; d1 = id clicked
 	; TODO: this will change
 	and.w #$000F,d0							; d0 = column
@@ -341,7 +350,7 @@ SprNewWin:
 	dc.w 20,20										; left,top
 	dc.w SPR_WIDTH,SPR_HEIGHT						; width, height
 	dc.b -1,-1										; default pens
-	dc.l CLOSEWINDOW!GADGETUP
+	dc.l CLOSEWINDOW!GADGETUP!GADGETDOWN
 	dc.l WINDOWCLOSE!WINDOWDEPTH!WINDOWDRAG
 	dc.l 0											; PATCH gadget
 	dc.l 0											; default checkmark image
