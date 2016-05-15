@@ -502,8 +502,8 @@ PxGGTmpl:
 	dc.l 0								; next gadget
 	dc.w PX_LEFT,PX_TOP					; left, top
 	dc.w PX_WIDTH,PX_HEIGHT
-	dc.w GFLG_GADGHBOX					; don't highlight on click
-	dc.w GACT_RELVERIFY
+	dc.w GFLG_GADGHNONE					; don't highlight on click
+	dc.w GACT_IMMEDIATE
 	dc.w GTYP_BOOLGADGET
 	dc.l PxBorder
 	dc.l 0								; no selected render
