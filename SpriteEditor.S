@@ -288,6 +288,7 @@ PxClicked:
 	add.w #PX_HEIGHT,d3
 	move.l SpriteEditor_Window(a0),a0
 	move.l wd_RPort(a0),a1
+	move.l GfxBase,a6
 	jsr _LVORectFill(a6)
 	movem.l (sp)+,d2-d3
 	rts
