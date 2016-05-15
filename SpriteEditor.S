@@ -277,11 +277,13 @@ PxClicked:
 	move.w d0,d2							; d2 = column
 	lsl.w #2,d0								; d0 = column px offset
 	add.w d2,d0								; ...
+	add.w d2,d0
 	move.w d1,d2							; d2 = row
 	lsl.w #2,d1								; d1 = row px
 	add.w d2,d1								; ...
-	add.w #PX_LEFT,d0
-	add.w #PX_TOP,d1
+	add.w d2,d1
+	add.w #PX_LEFT-1,d0
+	add.w #PX_TOP-1,d1
 	move.w d0,d2							; d2 = column px
 	add.w #PX_WIDTH,d2
 	move.w d1,d3
