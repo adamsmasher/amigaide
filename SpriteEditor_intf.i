@@ -4,4 +4,4 @@
 	XREF SprNewWin
 	XREF NewSpriteEditor
 	XREF CloseSpriteEditor
-	XREF SetSpriteEditorPen
+	XREF SpriteEditorOnClick

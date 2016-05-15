@@ -241,12 +241,19 @@ ArrangePxGGs:
 	rts
 ****************
 * a0 - ptr to SpriteEditor
+* a1 - ptr to gadget clicked
+SpriteEditorOnClick:
+	move.w gg_GadgetID(a1),d0
+	bsr.s SetSpriteEditorPen
+	rts
+ XDEF SpriteEditorOnClick
+****************
+* a0 - ptr to SpriteEditor
 * d0 - new pen colour
 SetSpriteEditorPen:
 	move.b d0,SpriteEditor_Pen(a0)
 	bsr.w DrawPen
 	rts
- XDEF SetSpriteEditorPen
 ****************
 * a0 - ptr to SpriteEditor
 CloseSpriteEditor:

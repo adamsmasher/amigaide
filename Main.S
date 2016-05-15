@@ -336,10 +336,9 @@ HandleSprEditorMsgs:
 	jsr CloseSpriteEditor
 	bra.s .loop
 .onClick:
-	move.l im_IAddress(a0),a0			; a0 = gadget clicked
-	move.w gg_GadgetID(a0),d0
+	move.l im_IAddress(a0),a1			; a1 = gadget clicked
 	move.l a3,a0						; a0 = sprite editor
-	jsr SetSpriteEditorPen
+	jsr SpriteEditorOnClick
 	bra.s .loop
 .done:
 	movem.l (sp)+,a2-a3
