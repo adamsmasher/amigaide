@@ -194,6 +194,7 @@ MakePxGGs:
 	add.l #gg_SIZEOF,a1				; a1 = new dest = old_dest + gg_SIZEOF
 	dbra d2,.loop
 .done:
+	clr.l gg_NextGadget(a0)
 	move.l (sp)+,d0
 	rts
 ****************
