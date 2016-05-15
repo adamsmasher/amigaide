@@ -46,7 +46,7 @@ PatchNewWin:
 	move.l a0,nw_FirstGadget(a1)
 	move.l (sp)+,a0						; a0 = sprite editor ptr
 	lea.l SpriteEditor_Title(a0),a0
-	move.l a1,nw_Title(a1)
+	move.l a0,nw_Title(a1)
 	rts
 ****************
 * returns in d0 address of new sprite editor, or NULL on failure
