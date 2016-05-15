@@ -244,8 +244,10 @@ ArrangePxGGs:
 * a1 - ptr to gadget clicked
 SpriteEditorOnClick:
 	move.w gg_GadgetID(a1),d0
-	bsr.s SetSpriteEditorPen
-	rts
+	cmp.w #4,d0								; is this a pal button?
+	blt.s SetSpriteEditorPen
+	subq #4,d0
+	bra.s PxClicked
  XDEF SpriteEditorOnClick
 ****************
 * a0 - ptr to SpriteEditor
@@ -253,6 +255,32 @@ SpriteEditorOnClick:
 SetSpriteEditorPen:
 	move.b d0,SpriteEditor_Pen(a0)
 	bsr.w DrawPen
+	rts
+****************
+* a0 - ptr to SpriteEditor
+* d0 - number of px clicked
+PxClicked:
+	movem.l d2-d3,-(sp)
+	move.w d0,d1							; d1 = id clicked
+	; TODO: this will change
+	and.w #$000F,d0							; d0 = column
+	lsr.w #4,d1								; d1 = row
+	move.w d0,d2							; d2 = column
+	lsl.w #3,d0								; d0 = column px offset
+	add.w d2,d0								; ...
+	move.w d1,d2							; d2 = row
+	lsl.w #3,d1								; d1 = row px
+	add.w d2,d1								; ...
+	add.w #PX_LEFT,d0
+	add.w #PX_TOP,d1
+	move.w d0,d2							; d2 = column px
+	add.w #PX_WIDTH,d2
+	move.w d1,d3
+	add.w #PX_HEIGHT,d3
+	move.l SpriteEditor_Window(a0),a0
+	move.l wd_RPort(a0),a1
+	jsr _LVORectFill(a6)
+	movem.l (sp)+,d2-d3
 	rts
 ****************
 * a0 - ptr to SpriteEditor
