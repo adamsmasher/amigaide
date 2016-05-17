@@ -89,21 +89,10 @@ NewSpriteEditor:
 	bsr.w DrawPenBg
 	move.l a3,a0						; a0=Sprite Editor
 	bsr.w DrawPen
-.addPxGGs:
-	move.l SpriteEditor_Window(a3),a0
-	move.l SpriteEditor_PxGGs(a3),a1
-	move.l #~0,d0						; add to end of list
-	; TODO: this will vary
-	move.l #256,d1						; add 256 gadgets
-	move.l #0,a2						; no requester
-	move.l IntuiBase,a6
-	jsr _LVOAddGList(a6)
-	move.l SpriteEditor_PxGGs(a3),a0
-	move.l SpriteEditor_Window(a3),a1
-	move.l #0,a2						; no requester
-	move.l #-1,d0						; refresh to end
-	move.l IntuiBase,a6
-	jsr _LVORefreshGList(a6)
+	move.l a3,a0
+	bsr.w AddPxGGs
+	move.l a3,a0
+	bsr.w DrawPreview
 .finish:
 	move.l a3,d0						; return in d0
 	bra.s .done
@@ -181,6 +170,61 @@ DrawPenBg:
 	jsr _LVORectFill(a6)
 	movem.l (sp)+,d2-d3
 	rts
+****************
+* a0 - SpriteEditor, with PxGGs defined, to add PxGGs to
+AddPxGGs:
+	move.l a2,-(sp)
+	move.l SpriteEditor_PxGGs(a0),a1
+	move.l SpriteEditor_Window(a0),a0
+	move.l #~0,d0						; add to end of list
+	; TODO: this will vary
+	move.l #256,d1						; add 256 gadgets
+	move.l #0,a2						; no requester
+	move.l IntuiBase,a6
+	movem.l a0-a2/a6,-(sp)
+	jsr _LVOAddGList(a6)
+	movem.l (sp)+,a0-a2/a6
+	exg a0,a1							; refreshglist reverses these lol
+	move.l #-1,d0						; refresh to end
+	jsr _LVORefreshGList(a6)
+	move.l (sp)+,a2
+	rts
+****************
+* a0 - SpriteEditor to update preview for
+DrawPreview:
+	move.l a0,-(sp)
+	bsr.s DrawPreviewBg
+	move.l (sp)+,a0
+	bsr.s DrawPreviewImg
+	rts
+****************
+* a0 - SpriteEditor to update preview for
+DrawPreviewBg:
+	movem.l d2-d3,-(sp)
+	move.l SpriteEditor_Window(a0),a0
+	move.l wd_RPort(a0),a1
+	moveq #3,d0							; pen clr
+	move.l GfxBase,a6
+	movem.l a1/a6,-(sp)
+	jsr _LVOSetAPen(a6)
+	movem.l (sp)+,a1/a6
+	move.w #PREVIEW_LEFT-1,d0
+	move.w #PREVIEW_TOP-1,d1
+	move.w #PREVIEW_LEFT+PREVIEW_WIDTH,d2
+	move.w #PREVIEW_TOP+PREVIEW_HEIGHT,d3
+	jsr _LVORectFill(a6)
+	movem.l (sp)+,d2-d3
+	rts
+****************
+* a0 - SpriteEditor to update preview for
+DrawPreviewImg:
+	lea.l SpriteEditor_Image(a0),a1
+	move.l SpriteEditor_Window(a0),a0
+	move.l wd_RPort(a0),a0
+	move.w #PREVIEW_LEFT,d0
+	move.w #PREVIEW_TOP,d1
+	move.l IntuiBase,a6
+	jmp _LVODrawImage(a6)
 ****************
 * d0 - returns the address of the PxGGs on success, otherwise 0
 MakePxGGs:
@@ -345,6 +389,11 @@ PX_TOP		=33
 PX_WIDTH	=4
 PX_HEIGHT	=4
 
+PREVIEW_LEFT	=8
+PREVIEW_TOP		=132
+PREVIEW_WIDTH	=16
+PREVIEW_HEIGHT	=16
+
 **** NewWindow
 * when a new sprite editor is created, this struct is updated to refer
 * to the correct data
@@ -495,6 +544,15 @@ SprEditorTemplate:
 	dc.b 0								; unused
 .pxGGs:
 	dc.l 0
+.image:
+	dc.w 0,0							; left, top
+	dc.w 16,16							; width, height
+	dc.w 2								; depth
+; TODO: dynamically allocate this
+	dc.l TmpImage						; image data
+	dc.b 3								; 0b0000.0011 - planes 0 and 1
+	dc.b 0								; planeonoff
+	dc.l 0
 	
 PX_ID_BASE	=4
 
@@ -599,3 +657,16 @@ PxBorder:
 	dc.b 5
 	dc.l PxBorderPts
 	dc.l 0
+
+ SECTION ImageData,DATA_C
+TmpImage:
+.bp1
+	dc.b 0,0,0,0,0,0,0,0
+	dc.b 0,0,0,0,0,0,0,0
+	dc.b 0,0,0,0,0,0,0,0
+	dc.b 0,0,0,0,0,0,0,0
+.bp2
+	dc.b 0,0,0,0,0,0,0,0
+	dc.b 0,0,0,0,0,0,0,0
+	dc.b 0,0,0,0,0,0,0,0
+	dc.b 0,0,0,0,0,0,0,0
