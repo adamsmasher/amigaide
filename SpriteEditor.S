@@ -312,12 +312,24 @@ SetSpriteEditorPen:
 * a0 - ptr to SpriteEditor
 * d0 - ID number of px clicked
 PxClicked:
-	movem.l d2-d3,-(sp)
 	sub.w #PX_ID_BASE,d0
-	move.w d0,d1							; d1 = id clicked
+	move.w d0,d1
 	; TODO: this will change
 	and.w #$000F,d0							; d0 = column
 	lsr.w #4,d1								; d1 = row
+	movem.l d0-d1/a0,-(sp)
+	bsr.s DrawPxGG
+	movem.l (sp)+,d0-d1/a0
+	move.l a0,-(sp)
+	bsr.s DrawPxData
+	move.l (sp)+,a0
+	bra.w DrawPreviewImg
+*****************
+* a0 - ptr to SpriteEditor
+* d0 - column
+* d1 - row
+DrawPxGG:
+	movem.l d2-d3,-(sp)
 	move.w d0,d2							; d2 = column
 	lsl.w #2,d0								; d0 = column px offset
 	add.w d2,d0								; ...
@@ -336,6 +348,36 @@ PxClicked:
 	move.l wd_RPort(a0),a1
 	move.l GfxBase,a6
 	jsr _LVORectFill(a6)
+	movem.l (sp)+,d2-d3
+	rts
+****************
+* a0 - ptr to SpriteEditor
+* d0 - column
+* d1 - row
+DrawPxData:
+	movem.l d2-d3,-(sp)
+	lsl.w #1,d1								; d1 = row byte offset
+	move.w d0,d2							; d2 = column
+	lsr.w #3,d2								; d2 = column byte offset
+	add.w d2,d1								; d1 = byte offset
+	and.w #$0007,d0							; d0 = bit to set
+	neg.w d0
+	add.w #7,d0
+	move.b SpriteEditor_Pen(a0),d2
+	lea.l SpriteEditor_Image(a0),a0
+	move.l ig_ImageData(a0),a0
+	moveq #2,d3								; 2 bitplanes
+.loop:
+	btst #0,d2
+	beq.s .bclr
+	bset d0,(a0,d1)
+	bra.s .loopEnd
+.bclr:
+	bclr d0,(a0,d1)
+.loopEnd:
+	lsr.b #1,d2								; next bit plane
+	add.l #32,a0							; next bit plane
+	dbra d3,.loop
 	movem.l (sp)+,d2-d3
 	rts
 ****************
