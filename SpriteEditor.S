@@ -62,11 +62,6 @@ NewSpriteEditor:
 	bsr.s PatchEditorOffsets
 	move.l a3,a0						; a0 = SpriteEditor ptr
 	bsr.s PatchNewWin
-	bsr.w MakePxGGs
-	; TODO: handle failure case here
-	move.l d0,SpriteEditor_PxGGs(a3)
-	move.l d0,a0
-	bsr.w ArrangePxGGs
 .openWindow:
 	lea.l SprNewWin,a0
 	move.l IntuiBase,a6
@@ -89,8 +84,6 @@ NewSpriteEditor:
 	bsr.w DrawPenBg
 	move.l a3,a0						; a0=Sprite Editor
 	bsr.w DrawPen
-	move.l a3,a0
-	bsr.w AddPxGGs
 	move.l a3,a0
 	bsr.w DrawPreview
 .finish:
@@ -171,25 +164,6 @@ DrawPenBg:
 	movem.l (sp)+,d2-d3
 	rts
 ****************
-* a0 - SpriteEditor, with PxGGs defined, to add PxGGs to
-AddPxGGs:
-	move.l a2,-(sp)
-	move.l SpriteEditor_PxGGs(a0),a1
-	move.l SpriteEditor_Window(a0),a0
-	move.l #~0,d0						; add to end of list
-	; TODO: this will vary
-	move.l #256,d1						; add 256 gadgets
-	move.l #0,a2						; no requester
-	move.l IntuiBase,a6
-	movem.l a0-a2/a6,-(sp)
-	jsr _LVOAddGList(a6)
-	movem.l (sp)+,a0-a2/a6
-	exg a0,a1							; refreshglist reverses these lol
-	move.l #-1,d0						; refresh to end
-	jsr _LVORefreshGList(a6)
-	move.l (sp)+,a2
-	rts
-****************
 * a0 - SpriteEditor to update preview for
 DrawPreview:
 	move.l a0,-(sp)
@@ -226,64 +200,6 @@ DrawPreviewImg:
 	move.l IntuiBase,a6
 	jmp _LVODrawImage(a6)
 ****************
-* d0 - returns the address of the PxGGs on success, otherwise 0
-MakePxGGs:
-	; TODO: this will vary based on the sprite
-	move.l #(256*gg_SIZEOF),d0
-	move.l #MEMF_CLEAR,d1
-	move.l 4.w,a6
-	jsr _LVOAllocMem(a6)
-	tst.l d0
-	beq.s .done
-	move.l d0,-(sp)
-	move.l d0,a1						; a1=gadget base
-	lea.l PxGGTmpl,a0
-	move.l d0,gg_NextGadget(a0)			; patch in start of list
-	; TODO: this will vary based on the sprite
-	move.w #(256-1),d2
-.loop:
-	move.l #gg_SIZEOF,d0
-	move.l 4.w,a6
-	move.l a1,-(sp)
-	jsr _LVOCopyMem(a6)
-	move.l (sp),a0					; a0 = old dest
-	bsr.s PatchPxGG
-	move.l (sp)+,a0					; a0 = old dest = new source
-	move.l a0,a1					; a1 = old dest...
-	add.l #gg_SIZEOF,a1				; a1 = new dest = old_dest + gg_SIZEOF
-	dbra d2,.loop
-.done:
-	clr.l gg_NextGadget(a0)
-	move.l (sp)+,d0
-	rts
-****************
-* a0 - pointer to GG to patch
-PatchPxGG:
-	add.l #gg_SIZEOF,gg_NextGadget(a0)
-	addq.w #1,gg_GadgetID(a0)
-	rts
-****************
-* a0 - pointer to PxGGs
-ArrangePxGGs:
-	movem.l d2-d3,-(sp)
-	; TODO: this will vary
-	moveq #15,d3							; d3 = row counter
-	move.w #PX_TOP,d1
-.rowLoop:
-	; TODO: this will vary
-	moveq #15,d2							; d2 = column counter
-	move.w #PX_LEFT,d0
-.loop:
-	move.w d0,gg_LeftEdge(a0)
-	move.w d1,gg_TopEdge(a0)
-	move.l gg_NextGadget(a0),a0
-	add.w #PX_WIDTH+2,d0
-	dbra d2,.loop
-	add.w #PX_HEIGHT+2,d1
-	dbra d3,.rowLoop
-	movem.l (sp)+,d2-d3
-	rts
-****************
 * a0 - ptr to SpriteEditor
 * a1 - ptr to gadget clicked
 SpriteEditorGadgetUp:
@@ -292,15 +208,6 @@ SpriteEditorGadgetUp:
 	blt.s SetSpriteEditorPen
 	rts
  XDEF SpriteEditorGadgetUp
-****************
-* a0 - ptr to SpriteEditor
-* a1 - ptr to gadget clicked
-SpriteEditorGadgetDown:
-	move.w gg_GadgetID(a1),d0
-	cmp.w #4,d0								; is this a px?
-	bge.w PxClicked
-	rts
- XDEF SpriteEditorGadgetDown
 ****************
 * a0 - ptr to SpriteEditor
 * d0 - new pen colour
@@ -388,15 +295,8 @@ CloseSpriteEditor:
 	move.l SpriteEditor_Window(a0),a0
 	move.l IntuiBase,a6
 	jsr _LVOCloseWindow(a6)
-.freePxGGs
-	move.l (sp),a1						; a1 = sprite editor
-	move.l SpriteEditor_PxGGs(a1),a1
-	; TODO: this will change
-	move.l #256,d0
-	move.l 4.w,a6
-	jsr _LVOFreeMem(a6)
-.freeEditor:							; a1 = sprite editor
-	move.l (sp)+,a1
+.freeEditor:
+	move.l (sp)+,a1							; a1 = sprite editor
 	move.l #SPRITEEDITOR_SIZEOF,d0
 	move.l 4.w,a6
 	jmp _LVOFreeMem(a6)
@@ -444,7 +344,7 @@ SprNewWin:
 	dc.w 20,20										; left,top
 	dc.w SPR_WIDTH,SPR_HEIGHT						; width, height
 	dc.b -1,-1										; default pens
-	dc.l CLOSEWINDOW!GADGETUP!GADGETDOWN
+	dc.l CLOSEWINDOW!GADGETUP
 	dc.l WINDOWCLOSE!WINDOWDEPTH!WINDOWDRAG
 	dc.l 0											; PATCH gadget
 	dc.l 0											; default checkmark image
@@ -584,10 +484,9 @@ SprEditorTemplate:
 .pen:
 	dc.b 0
 	dc.b 0								; unused
-.pxGGs:
-	dc.l 0
 .image:
 	dc.w 0,0							; left, top
+; TODO: this varies
 	dc.w 16,16							; width, height
 	dc.w 2								; depth
 ; TODO: dynamically allocate this
@@ -597,21 +496,6 @@ SprEditorTemplate:
 	dc.l 0
 	
 PX_ID_BASE	=4
-
-PxGGTmpl:
-	dc.l 0								; next gadget
-	dc.w PX_LEFT,PX_TOP					; left, top
-	dc.w PX_WIDTH,PX_HEIGHT
-	dc.w GFLG_GADGHNONE					; don't highlight on click
-	dc.w GACT_IMMEDIATE
-	dc.w GTYP_BOOLGADGET
-	dc.l PxBorder
-	dc.l 0								; no selected render
-	dc.l 0								; no text
-	dc.l 0								; no mutual exclude
-	dc.l 0								; no special info
-	dc.w PX_ID_BASE-1
-	dc.l 0								; no special user data
 
 SprEditPatchLocs:
 	dc.l SpriteEditor_NumGG+gg_NextGadget

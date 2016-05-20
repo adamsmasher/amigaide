@@ -4,5 +4,4 @@
 	XREF SprNewWin
 	XREF NewSpriteEditor
 	XREF CloseSpriteEditor
-	XREF SpriteEditorGadgetDown
 	XREF SpriteEditorGadgetUp
