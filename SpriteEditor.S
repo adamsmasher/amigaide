@@ -75,17 +75,8 @@ NewSpriteEditor:
 	move.l #0,a2						; no requester
 	move.l IntuiBase,a6
 	jsr _LVOOffGadget(a6)
-.drawPal:
-	move.l SpriteEditor_Window(a3),a0
-	move.l wd_RPort(a0),a0
-	bsr.s DrawPal
-	move.l SpriteEditor_Window(a3),a1
-	move.l wd_RPort(a1),a1
-	bsr.w DrawPenBg
-	move.l a3,a0						; a0=Sprite Editor
-	bsr.w DrawPen
 	move.l a3,a0
-	bsr.w DrawPreview
+	bsr.s DrawSpriteEditor
 .finish:
 	move.l a3,d0						; return in d0
 	bra.s .done
@@ -100,6 +91,23 @@ NewSpriteEditor:
 	rts
 
 	XDEF NewSpriteEditor
+****************
+* a0 - ptr to SpriteEditor
+DrawSpriteEditor:
+	move.l a0,-(sp)
+	move.l SpriteEditor_Window(a0),a0
+	move.l wd_RPort(a0),a0
+	bsr.s DrawPal
+	move.l (sp),a0
+	move.l SpriteEditor_Window(a0),a1
+	move.l wd_RPort(a1),a1
+	bsr.w DrawPenBg
+	move.l (sp),a0
+	bsr.w DrawPen
+	move.l (sp),a0
+	bsr.w DrawGrid
+	move.l (sp)+,a0
+	bra.w DrawPreview
 ****************
 * a0 - ptr to rastport
 DrawPal:
@@ -199,6 +207,77 @@ DrawPreviewImg:
 	move.w #PREVIEW_TOP,d1
 	move.l IntuiBase,a6
 	jmp _LVODrawImage(a6)
+****************
+* a0 - SpriteEditor to draw Grid for
+DrawGrid:
+	movem.l d2-d4/a2,-(sp)
+.setColor:
+	move.l SpriteEditor_Window(a0),a1
+	move.l wd_RPort(a1),a1
+	move.l a1,a2							; a2 = rport
+	moveq #3,d0								; black
+	move.l GfxBase,a6
+	jsr _LVOSetAPen(a6)
+.placePen:
+	move.l a2,a1							; a1 = rport
+	move.w GridPoints,d2					; d2 = pen x
+	move.w GridPoints+2,d3					; d3 = pen y
+	move.w d2,d0							; d0 = pen x
+	move.w d3,d1							; d1 = pen y
+	move.l GfxBase,a6
+	jsr _LVOMove(a6)
+.drawBox:
+	move.l a2,a1							; a1 = rport
+	lea.l GridPoints,a0
+	moveq #5,d0								; 5 points
+	move.l GfxBase,a6
+	jsr _LVOPolyDraw(a6)
+.drawVLines:
+	moveq #(15-1),d4
+.vloop:
+.movePenRight:
+	add.w #PX_WIDTH+1,d2
+	move.w d2,d0							; d0 = pen x
+	move.w d3,d1							; d1 = pen y
+	move.l a2,a1							; a1 = r port
+	move.l GfxBase,a6
+	jsr _LVOMove(a6)
+.drawVLine:
+	move.l a2,a1
+	move.w d2,d0							; d0 = pen x
+	move.w d3,d1							; d1 = pen y
+	add.w #(PX_HEIGHT+1)*16,d1				; d1 = endpoint
+	move.l GfxBase,a6
+	jsr _LVODraw(a6)
+	dbra d4,.vloop
+.resetPen:
+	move.w GridPoints,d2
+	move.w GridPoints+2,d3
+	move.w d2,d0
+	move.w d3,d1
+	move.l a2,a1
+	move.l GfxBase,a6
+	jsr _LVOMove(a6)
+.drawHLines:
+	moveq #(15-1),d4
+.hloop:
+.movePenDown:
+	add.w #PX_HEIGHT+1,d3
+	move.w d2,d0							; d0 = pen x
+	move.w d3,d1							; d1 = pen y
+	move.l a2,a1							; a1 = r port
+	move.l GfxBase,a6
+	jsr _LVOMove(a6)
+.drawHLine:
+	move.l a2,a1
+	move.w d2,d0							; d0 = pen x
+	move.w d3,d1							; d1 = pen y
+	add.w #(PX_WIDTH+1)*16,d0				; d0 = endpoint
+	move.l GfxBase,a6
+	jsr _LVODraw(a6)
+	dbra d4,.hloop
+	movem.l (sp)+,d2-d4/a2
+	rts
 ****************
 * a0 - ptr to SpriteEditor
 * a1 - ptr to gadget clicked
@@ -331,7 +410,15 @@ PX_TOP		=33
 PX_WIDTH	=4
 PX_HEIGHT	=4
 
-PREVIEW_LEFT	=8
+	EVEN
+GridPoints:
+	dc.w PX_LEFT,PX_TOP
+	dc.w PX_LEFT+(PX_WIDTH+1)*16,PX_TOP
+	dc.w PX_LEFT+(PX_WIDTH+1)*16,PX_TOP+(PX_HEIGHT+1)*16
+	dc.w PX_LEFT,PX_TOP+(PX_HEIGHT+1)*16
+	dc.w PX_LEFT,PX_TOP
+
+PREVIEW_LEFT	=9
 PREVIEW_TOP		=132
 PREVIEW_WIDTH	=16
 PREVIEW_HEIGHT	=16
