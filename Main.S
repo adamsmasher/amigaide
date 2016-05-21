@@ -433,8 +433,8 @@ Palette:
 Title:
 	dc.b "FracIDE",0
 
-SCR_WIDTH	=640
-SCR_HEIGHT	=512
+SCR_WIDTH	=320
+SCR_HEIGHT	=256
 
 	EVEN
 ScrDef:
@@ -442,7 +442,7 @@ ScrDef:
 	dc.w SCR_WIDTH,SCR_HEIGHT	; width/height
 	dc.w 2						; bits per pixel
 	dc.b 0,1					; default pens
-	dc.w V_HIRES|V_LACE			; view mode
+	dc.w 0						; lo res view mode
 	dc.w SHOWTITLE
 	dc.l 0						; default font
 	dc.l Title
