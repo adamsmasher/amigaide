@@ -177,8 +177,7 @@ DrawPreview:
 	move.l a0,-(sp)
 	bsr.s DrawPreviewBg
 	move.l (sp)+,a0
-	bsr.s DrawPreviewImg
-	rts
+	bra.s DrawPreviewImg
 ****************
 * a0 - SpriteEditor to update preview for
 DrawPreviewBg:
