@@ -580,8 +580,6 @@ SprEditorTemplate:
 	dc.b 3								; 0b0000.0011 - planes 0 and 1
 	dc.b 0								; planeonoff
 	dc.l 0
-	
-PX_ID_BASE	=4
 
 SprEditPatchLocs:
 	dc.l SpriteEditor_NumGG+gg_NextGadget
