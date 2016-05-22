@@ -295,13 +295,89 @@ SetSpriteEditorPen:
 	rts
 ****************
 * a0 - ptr to SpriteEditor
-* d0 - ID number of px clicked
+* d0 - mouse X
+* d1 - mouse Y
+* d2 - mouse code
+SpriteEditorMouseButtons:
+	cmp.w #SELECTUP,d2
+	beq.s .selectUp
+	cmp.w #SELECTDOWN,d2
+	beq.s .selectDown
+	rts
+.selectUp:
+	moveq #0,d0								; d0 = FALSE, stop mouse moving
+	move.l SpriteEditor_Window(a0),a0
+	move.l IntuiBase,a6
+	jmp _LVOReportMouse(a6)
+.selectDown:
+	movem.l d0-d1/a0,-(sp)
+	bsr.s InPxRange
+	tst.w d0
+	movem.l (sp)+,d0-d1/a0
+	beq.s .done
+	movem.l d0-d1/a0,-(sp)
+	moveq #1,d0								; d0 = TRUE, capture mouse
+	move.l SpriteEditor_Window(a0),a0
+	move.l IntuiBase,a6
+	jsr _LVOReportMouse(a6)
+	movem.l (sp)+,d0-d1/a0					; d0-d1=mouse; a0 = SpriteEditor
+	move.l a0,-(sp)
+	bsr.s ToColRow
+	move.l (sp)+,a0							; a0 = sprite editor
+	bsr.s PxClicked
+.done:
+	rts	
+
+ XDEF SpriteEditorMouseButtons
+****************
+* d0 - mouse X
+* d1 - mouse Y
+* returns 1 in d0 if in range, otherwise 0
+InPxRange:
+	cmp.w #PX_LEFT,d0
+	blt.s .out
+	cmp.w #PX_TOP,d1
+	blt.s .out
+	cmp.w #PX_LEFT+(16*8),d0
+	bgt.s .out
+	cmp.w #PX_TOP+(16*8),d1
+	bgt.s .out
+	moveq #1,d0
+	rts
+.out:
+	moveq #0,d0
+	rts
+****************
+* d0 - mouse X
+* d1 - mouse Y
+* returns in d0,d1 column and row
+ToColRow:
+	sub.w #PX_LEFT,d0
+	sub.w #PX_TOP,d1
+	lsr.w #3,d0								; d0 = column
+	lsr.w #3,d1								; d1 = row	
+	rts
+****************
+* a0 - ptr to sprite editor
+* d0 - mouse X
+* d1 - mouse Y
+SpriteEditorMouseMove:
+	movem.l d0-d1/a0,-(sp)
+	bsr.s InPxRange
+	movem.l (sp)+,d0-d1/a0
+	beq.s .done
+	move.l a0,-(sp)
+	bsr.s ToColRow
+	move.l (sp)+,a0
+	bra.s PxClicked
+.done:
+	rts
+ XDEF SpriteEditorMouseMove
+****************
+* a0 - ptr to SpriteEditor
+* d0 - column clicked
+* d1 - row clicked
 PxClicked:
-	sub.w #PX_ID_BASE,d0
-	move.w d0,d1
-	; TODO: this will change
-	and.w #$000F,d0							; d0 = column
-	lsr.w #4,d1								; d1 = row
 	movem.l d0-d1/a0,-(sp)
 	bsr.s DrawPxGG
 	movem.l (sp)+,d0-d1/a0
@@ -315,20 +391,14 @@ PxClicked:
 * d1 - row
 DrawPxGG:
 	movem.l d2-d3,-(sp)
-	move.w d0,d2							; d2 = column
-	lsl.w #2,d0								; d0 = column px offset
-	add.w d2,d0								; ...
-	add.w d2,d0
-	move.w d1,d2							; d2 = row
-	lsl.w #2,d1								; d1 = row px
-	add.w d2,d1								; ...
-	add.w d2,d1
-	add.w #PX_LEFT-1,d0
-	add.w #PX_TOP-1,d1
+	lsl.w #3,d0								; d0 = column px offset
+	lsl.w #3,d1								; d1 = row px
+	add.w #PX_LEFT+1,d0
+	add.w #PX_TOP+1,d1
 	move.w d0,d2							; d2 = column px
-	add.w #PX_WIDTH,d2
+	add.w #PX_WIDTH-1,d2
 	move.w d1,d3
-	add.w #PX_HEIGHT,d3
+	add.w #PX_HEIGHT-1,d3
 	move.l SpriteEditor_Window(a0),a0
 	move.l wd_RPort(a0),a1
 	move.l GfxBase,a6
@@ -351,7 +421,7 @@ DrawPxData:
 	move.b SpriteEditor_Pen(a0),d2
 	lea.l SpriteEditor_Image(a0),a0
 	move.l ig_ImageData(a0),a0
-	moveq #2,d3								; 2 bitplanes
+	moveq #1,d3								; 2 bitplanes
 .loop:
 	btst #0,d2
 	beq.s .bclr
@@ -385,8 +455,8 @@ CloseSpriteEditor:
 ******** Sprite window
 **** Constants
 
-SPR_WIDTH	=128
-SPR_HEIGHT	=144
+SPR_WIDTH	=160
+SPR_HEIGHT	=192
 
 SPRNAME_WIDTH   =88
 SPRNAME_HEIGHT  =10
@@ -396,18 +466,18 @@ SPRNUM_HEIGHT	=10
 
 PAL_WIDTH	=16
 PAL_HEIGHT	=16
-PAL_LEFT	=112
-PAL_TOP		=32
+PAL_LEFT	=144
+PAL_TOP		=33
 
 PEN_LEFT	=PAL_LEFT
-PEN_TOP		=113
-PEN_WIDTH	=PAL_WIDTH
+PEN_TOP		=104
+PEN_WIDTH	=PAL_WIDTH-1
 PEN_HEIGHT	=PAL_HEIGHT
 
 PX_LEFT		=8
 PX_TOP		=32
-PX_WIDTH	=4
-PX_HEIGHT	=4
+PX_WIDTH	=7
+PX_HEIGHT	=7
 
 	EVEN
 GridPoints:
@@ -417,8 +487,8 @@ GridPoints:
 	dc.w PX_LEFT,PX_TOP+(PX_HEIGHT+1)*16
 	dc.w PX_LEFT,PX_TOP
 
-PREVIEW_LEFT	=9
-PREVIEW_TOP		=132
+PREVIEW_LEFT	=PEN_LEFT
+PREVIEW_TOP		=144
 PREVIEW_WIDTH	=16
 PREVIEW_HEIGHT	=16
 
@@ -430,7 +500,7 @@ SprNewWin:
 	dc.w 20,20										; left,top
 	dc.w SPR_WIDTH,SPR_HEIGHT						; width, height
 	dc.b -1,-1										; default pens
-	dc.l CLOSEWINDOW!GADGETUP
+	dc.l CLOSEWINDOW!GADGETUP!MOUSEBUTTONS!MOUSEMOVE
 	dc.l WINDOWCLOSE!WINDOWDEPTH!WINDOWDRAG
 	dc.l 0											; PATCH gadget
 	dc.l 0											; default checkmark image

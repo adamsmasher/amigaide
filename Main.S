@@ -310,7 +310,7 @@ HandleProjMsgs:
 ****
 * a0 - contains ptr to sprite editor
 HandleSprEditorMsgs:
-	movem.l a2-a3,-(sp)
+	movem.l d2/a2-a3,-(sp)
 	move.l a0,a3						; a3=SpriteEditor
 	move.l SpriteEditor_Window(a0),a0
 	move.l wd_UserPort(a0),a2
@@ -326,6 +326,10 @@ HandleSprEditorMsgs:
 	beq.s .closeWindow
 	cmp.l #IDCMP_GADGETUP,d0
 	beq.s .onGadgetUp
+	cmp.l #IDCMP_MOUSEBUTTONS,d0
+	beq.s .onMouseButtons
+	cmp.l #IDCMP_MOUSEMOVE,d0
+	beq.s .onMouseMove
 	bra.s .loop
 .closeWindow:
 	move.l a3,a0						; a0 = spr editor
@@ -340,8 +344,21 @@ HandleSprEditorMsgs:
 	move.l a3,a0						; a0 = sprite editor
 	jsr SpriteEditorGadgetUp
 	bra.s .loop
+.onMouseButtons:
+	move.w im_MouseX(a0),d0
+	move.w im_MouseY(a0),d1
+	move.w im_Code(a0),d2
+	move.l a3,a0
+	jsr SpriteEditorMouseButtons
+	bra.s .loop
+.onMouseMove:
+	move.w im_MouseX(a0),d0
+	move.w im_MouseY(a0),d1
+	move.l a3,a0
+	jsr SpriteEditorMouseMove
+	bra.s .loop
 .done:
-	movem.l (sp)+,a2-a3
+	movem.l (sp)+,d2/a2-a3
 	rts
 ****
 * a0 - sprite editor to be removed
