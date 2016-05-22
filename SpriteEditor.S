@@ -339,9 +339,9 @@ InPxRange:
 	cmp.w #PX_TOP,d1
 	blt.s .out
 	cmp.w #PX_LEFT+(16*8),d0
-	bgt.s .out
+	bge.s .out
 	cmp.w #PX_TOP+(16*8),d1
-	bgt.s .out
+	bge.s .out
 	moveq #1,d0
 	rts
 .out:
