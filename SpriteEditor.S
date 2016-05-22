@@ -479,6 +479,9 @@ PX_TOP		=32
 PX_WIDTH	=7
 PX_HEIGHT	=7
 
+PREV_ID		=$100
+NEXT_ID		=$200
+
 	EVEN
 GridPoints:
 	dc.w PX_LEFT,PX_TOP
@@ -491,6 +494,16 @@ PREVIEW_LEFT	=PEN_LEFT
 PREVIEW_TOP		=144
 PREVIEW_WIDTH	=16
 PREVIEW_HEIGHT	=16
+
+PREV_LEFT		=108
+PREV_TOP		=172
+PREV_WIDTH		=24
+PREV_HEIGHT		=16
+
+NEXT_LEFT		=PREV_LEFT+PREV_WIDTH+4
+NEXT_TOP		=PREV_TOP
+NEXT_WIDTH		=PREV_WIDTH
+NEXT_HEIGHT		=PREV_HEIGHT
 
 **** NewWindow
 * when a new sprite editor is created, this struct is updated to refer
@@ -624,7 +637,7 @@ SprEditorTemplate:
 	dc.w 1								; pen colour 1
 	dc.l 0								; no special user data
 .palGGs3:
-	dc.l 0								; next gadget
+	dc.l SpriteEditor_PrevGG		; next gadget
 	dc.w PAL_LEFT,PAL_TOP+(PAL_HEIGHT*3); left, top
 	dc.w PAL_WIDTH,PAL_HEIGHT
 	dc.w GFLG_GADGHBOX
@@ -637,6 +650,34 @@ SprEditorTemplate:
 	dc.l 0								; no special info
 	dc.w 0								; pen colour 0
 	dc.l 0								; no special user data
+.prevTileGG:
+	dc.l SpriteEditor_NextGG		; next gadget
+	dc.w PREV_LEFT,PREV_TOP
+	dc.w PREV_WIDTH,PREV_HEIGHT
+	dc.w GFLG_GADGHCOMP
+	dc.w GACT_RELVERIFY
+	dc.w GTYP_BOOLGADGET
+	dc.l PrevBorder
+	dc.l 0
+	dc.l PrevText
+	dc.l 0
+	dc.l 0
+	dc.w PREV_ID
+	dc.l 0
+.nextTileGG:
+	dc.l 0
+	dc.w NEXT_LEFT,NEXT_TOP
+	dc.w NEXT_WIDTH,NEXT_HEIGHT
+	dc.w GFLG_GADGHCOMP
+	dc.w GACT_RELVERIFY
+	dc.w GTYP_BOOLGADGET
+	dc.l NextBorder
+	dc.l 0
+	dc.l NextText
+	dc.l 0
+	dc.l 0
+	dc.w NEXT_ID
+	dc.l 0
 .pen:
 	dc.b 0
 	dc.b 0								; unused
@@ -661,6 +702,8 @@ SprEditPatchLocs:
 	dc.l SpriteEditor_PalGGs+gg_NextGadget
 	dc.l SpriteEditor_PalGGs+gg_SIZEOF+gg_NextGadget
 	dc.l SpriteEditor_PalGGs+(gg_SIZEOF*2)+gg_NextGadget
+	dc.l SpriteEditor_PalGGs+(gg_SIZEOF*3)+gg_NextGadget
+	dc.l SpriteEditor_PrevGG+gg_NextGadget
 	XDEF SprEditorTemplate
 
 ** SprName
@@ -736,6 +779,66 @@ PxBorder:
 	dc.b 0
 	dc.b 5
 	dc.l PxBorderPts
+	dc.l 0
+
+** Next/Prev
+
+	EVEN
+PrevBorderPts:
+	dc.w -1,-1
+	dc.w PREV_WIDTH+1,-1
+	dc.w PREV_WIDTH+1,PREV_HEIGHT+1
+	dc.w -1,PREV_HEIGHT+1
+	dc.w -1,-1
+
+PrevBorder:
+	dc.w -1,-1
+	dc.b 1,0
+	dc.b 0
+	dc.b 5
+	dc.l PrevBorderPts
+	dc.l 0
+
+	EVEN
+NextBorderPts:
+	dc.w -1,-1
+	dc.w NEXT_WIDTH+1,-1
+	dc.w NEXT_WIDTH+1,NEXT_HEIGHT+1
+	dc.w -1,NEXT_HEIGHT+1
+	dc.w -1,-1
+
+NextBorder:
+	dc.w -1,-1
+	dc.b 1,0
+	dc.b 0
+	dc.b 5
+	dc.l NextBorderPts
+	dc.l 0
+
+	EVEN
+PrevTxt:
+	dc.b '<<',0
+	
+	EVEN
+NextTxt:
+	dc.b '>>',0
+
+	EVEN
+PrevText:
+	dc.b 3,0
+	dc.b 0
+	dc.w 4,4
+	dc.l 0
+	dc.l PrevTxt
+	dc.l 0
+
+	EVEN
+NextText:
+	dc.b 3,0
+	dc.b 0
+	dc.w 4,4
+	dc.l 0
+	dc.l NextTxt
 	dc.l 0
 
  SECTION ImageData,DATA_C
