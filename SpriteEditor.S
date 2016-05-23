@@ -481,6 +481,7 @@ PX_HEIGHT	=7
 
 PREV_ID		=$100
 NEXT_ID		=$200
+PASSABLE_ID	=$400
 
 	EVEN
 GridPoints:
@@ -504,6 +505,11 @@ NEXT_LEFT		=PREV_LEFT+PREV_WIDTH+4
 NEXT_TOP		=PREV_TOP
 NEXT_WIDTH		=PREV_WIDTH
 NEXT_HEIGHT		=PREV_HEIGHT
+
+PASSABLE_TOP	=176
+PASSABLE_LEFT	=9
+PASSABLE_WIDTH	=8
+PASSABLE_HEIGHT	=8
 
 **** NewWindow
 * when a new sprite editor is created, this struct is updated to refer
@@ -665,7 +671,7 @@ SprEditorTemplate:
 	dc.w PREV_ID
 	dc.l 0
 .nextTileGG:
-	dc.l 0
+	dc.l SpriteEditor_PassableGG
 	dc.w NEXT_LEFT,NEXT_TOP
 	dc.w NEXT_WIDTH,NEXT_HEIGHT
 	dc.w GFLG_GADGHCOMP
@@ -677,6 +683,20 @@ SprEditorTemplate:
 	dc.l 0
 	dc.l 0
 	dc.w NEXT_ID
+	dc.l 0
+.passableGG:
+	dc.l 0
+	dc.w PASSABLE_LEFT,PASSABLE_TOP
+	dc.w PASSABLE_WIDTH,PASSABLE_HEIGHT
+	dc.w GFLG_GADGHCOMP
+	dc.w GACT_TOGGLESELECT
+	dc.w GTYP_BOOLGADGET
+	dc.l PassableBorder
+	dc.l 0
+	dc.l PassableText
+	dc.l 0
+	dc.l 0
+	dc.w PASSABLE_ID
 	dc.l 0
 .pen:
 	dc.b 0
@@ -704,6 +724,7 @@ SprEditPatchLocs:
 	dc.l SpriteEditor_PalGGs+(gg_SIZEOF*2)+gg_NextGadget
 	dc.l SpriteEditor_PalGGs+(gg_SIZEOF*3)+gg_NextGadget
 	dc.l SpriteEditor_PrevGG+gg_NextGadget
+	dc.l SpriteEditor_NextGG+gg_NextGadget
 	XDEF SprEditorTemplate
 
 ** SprName
@@ -839,6 +860,34 @@ NextText:
 	dc.w 4,4
 	dc.l 0
 	dc.l NextTxt
+	dc.l 0
+
+	EVEN
+PassableBorderPts:
+	dc.w -1,-1
+	dc.w PASSABLE_WIDTH+1,-1
+	dc.w PASSABLE_WIDTH+1,PASSABLE_HEIGHT+1
+	dc.w -1,PASSABLE_HEIGHT+1
+	dc.w -1,-1
+
+PassableBorder:
+	dc.w -1,-1
+	dc.b 1,0
+	dc.b 0
+	dc.b 5
+	dc.l PassableBorderPts
+	dc.l 0
+
+PassableTxt:
+	dc.b "Passable?",0
+
+	EVEN
+PassableText:
+	dc.b 3,0
+	dc.b 0
+	dc.w 16,0
+	dc.l 0
+	dc.l PassableTxt
 	dc.l 0
 
  SECTION ImageData,DATA_C
