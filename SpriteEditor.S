@@ -391,6 +391,13 @@ PxClicked:
 * d1 - row
 DrawPxGG:
 	movem.l d2-d3,-(sp)
+	movem.l d0-d1/a0,-(sp)
+	move.b SpriteEditor_Pen(a0),d0
+	move.l SpriteEditor_Window(a0),a0
+	move.l wd_RPort(a0),a1
+	move.l GfxBase,a6
+	jsr _LVOSetAPen(a6)
+	movem.l (sp)+,d0-d1/a0
 	lsl.w #3,d0								; d0 = column px offset
 	lsl.w #3,d1								; d1 = row px
 	add.w #PX_LEFT+1,d0
