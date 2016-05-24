@@ -278,6 +278,19 @@ DrawGrid:
 	movem.l (sp)+,d2-d4/a2
 	rts
 ****************
+* a0 - ptr to sprite editor
+SetUnsaved:
+	move.l a2,-(sp)
+	move.b #1,SpriteEditor_Unsaved(a0)
+	move.b #'*',SpriteEditor_Title+9(a0)
+	lea.l SpriteEditor_Title(a0),a1
+	move.l SpriteEditor_Window(a0),a0
+	move.l #-1,a2							; don't change screen title
+	move.l IntuiBase,a6
+	jsr _LVOSetWindowTitles(a6)
+	move.l (sp)+,a2
+	rts
+****************
 * a0 - ptr to SpriteEditor
 * a1 - ptr to gadget clicked
 SpriteEditorGadgetUp:
@@ -316,6 +329,8 @@ SpriteEditorMouseButtons:
 	movem.l (sp)+,d0-d1/a0
 	beq.s .done
 	movem.l d0-d1/a0,-(sp)
+	bsr.s SetUnsaved
+	movem.l (sp),d0-d1/a0
 	moveq #1,d0								; d0 = TRUE, capture mouse
 	move.l SpriteEditor_Window(a0),a0
 	move.l IntuiBase,a6
@@ -707,7 +722,8 @@ SprEditorTemplate:
 	dc.l 0
 .pen:
 	dc.b 0
-	dc.b 0								; unused
+.unsaved:
+	dc.b 0
 .image:
 	dc.w 0,0							; left, top
 ; TODO: this varies

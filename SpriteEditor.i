@@ -15,7 +15,7 @@ SpriteEditor_PrevGG:	rs.b gg_SIZEOF
 SpriteEditor_NextGG:	rs.b gg_SIZEOF
 SpriteEditor_PassableGG:rs.b gg_SIZEOF
 SpriteEditor_Pen:		rs.b 1
-SpriteEditor_Unused1:	rs.b 1			; for alignment...
+SpriteEditor_Unsaved:	rs.b 1
 SpriteEditor_Image:		rs.b ig_SIZEOF
 
 SPRITEEDITOR_SIZEOF	=__RS
