@@ -5,5 +5,6 @@
 	XREF NewSpriteEditor
 	XREF CloseSpriteEditor
 	XREF SpriteEditorGadgetUp
+	XREF SpriteEditorGadgetDown
 	XREF SpriteEditorMouseButtons
 	XREF SpriteEditorMouseMove

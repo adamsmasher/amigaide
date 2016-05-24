@@ -293,6 +293,19 @@ SetUnsaved:
 ****************
 * a0 - ptr to SpriteEditor
 * a1 - ptr to gadget clicked
+SpriteEditorGadgetDown:
+	move.w gg_GadgetID(a1),d0
+	cmp.w #PASSABLE_ID,d0
+	beq.s TogglePassable
+	rts
+ XDEF SpriteEditorGadgetDown
+****************
+* a0 - ptr to SpriteEditor
+TogglePassable:
+	bra.s SetUnsaved
+****************
+* a0 - ptr to SpriteEditor
+* a1 - ptr to gadget clicked
 SpriteEditorGadgetUp:
 	move.w gg_GadgetID(a1),d0
 	cmp.w #4,d0								; is this a pal button?
@@ -541,7 +554,7 @@ SprNewWin:
 	dc.w 20,20										; left,top
 	dc.w SPR_WIDTH,SPR_HEIGHT						; width, height
 	dc.b -1,-1										; default pens
-	dc.l CLOSEWINDOW!GADGETUP!MOUSEBUTTONS!MOUSEMOVE
+	dc.l CLOSEWINDOW!GADGETUP!GADGETDOWN!MOUSEBUTTONS!MOUSEMOVE
 	dc.l WINDOWCLOSE!WINDOWDEPTH!WINDOWDRAG
 	dc.l 0											; PATCH gadget
 	dc.l 0											; default checkmark image
@@ -711,7 +724,7 @@ SprEditorTemplate:
 	dc.w PASSABLE_LEFT,PASSABLE_TOP
 	dc.w PASSABLE_WIDTH,PASSABLE_HEIGHT
 	dc.w GFLG_GADGHCOMP
-	dc.w GACT_TOGGLESELECT
+	dc.w GACT_TOGGLESELECT!GACT_IMMEDIATE
 	dc.w GTYP_BOOLGADGET
 	dc.l PassableBorder
 	dc.l 0
