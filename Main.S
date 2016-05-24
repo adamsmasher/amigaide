@@ -318,7 +318,7 @@ HandleSprEditorMsgs:
 	move.l a2,a0						; a0=UserPort
 	bsr.s GetAckMsg
 	tst.l d0
-	beq.s .done
+	beq.w .done
 	move.l d0,a0						; a0=Msg
 .dispatch:
 	move.l im_Class(a0),d0
@@ -350,13 +350,13 @@ HandleSprEditorMsgs:
 	move.w im_Code(a0),d2
 	move.l a3,a0
 	jsr SpriteEditorMouseButtons
-	bra.s .loop
+	bra.w .loop
 .onMouseMove:
 	move.w im_MouseX(a0),d0
 	move.w im_MouseY(a0),d1
 	move.l a3,a0
 	jsr SpriteEditorMouseMove
-	bra.s .loop
+	bra.w .loop
 .done:
 	movem.l (sp)+,d2/a2-a3
 	rts

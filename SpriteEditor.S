@@ -329,7 +329,7 @@ SpriteEditorMouseButtons:
 	movem.l (sp)+,d0-d1/a0
 	beq.s .done
 	movem.l d0-d1/a0,-(sp)
-	bsr.s SetUnsaved
+	bsr.w SetUnsaved
 	movem.l (sp),d0-d1/a0
 	moveq #1,d0								; d0 = TRUE, capture mouse
 	move.l SpriteEditor_Window(a0),a0
