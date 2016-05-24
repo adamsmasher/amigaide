@@ -402,6 +402,15 @@ HandleMenu:
 	move.l (a0,d0.w),a0		; a0 = handler
 	jmp (a0)				; jump to routine
 ****
+NewItemHandler:
+	rts
+****
+SaveItemHandler:
+	rts
+****
+SaveAsItemHandler:
+	rts
+****
 QuitItemHandler:
 	move.b #1,QuitFlag
 	rts
@@ -449,7 +458,7 @@ GfxName:
 
 	EVEN
 Palette:
-	dc.w 0,0,0			; black
+	dc.w 0,0,0				; black
 	dc.w 5,5,5
 	dc.w 10,10,10
 	dc.w 15,15,15			; white
@@ -516,6 +525,45 @@ NewSpriteTxt:
 
 **** Proj Menu Text
 
+NewStr:
+	dc.b "New",0
+	
+	EVEN
+NewTxt:
+	dc.b 0,0
+	dc.b 0
+	dc.b 0
+	dc.w 0,0
+	dc.l 0
+	dc.l NewStr
+	dc.l 0
+
+SaveStr:
+	dc.b "Save",0
+	
+	EVEN
+SaveTxt:
+	dc.b 0,0
+	dc.b 0
+	dc.b 0
+	dc.w 0,0
+	dc.l 0
+	dc.l SaveStr
+	dc.l 0
+
+SaveAsStr:
+	dc.b 'Save As...',0
+	
+	EVEN
+SaveAsTxt:
+	dc.b 0,0
+	dc.b 0
+	dc.b 0
+	dc.w 0,0
+	dc.l 0
+	dc.l SaveAsStr
+	dc.l 0
+
 ExitStr:
 	dc.b "Exit",0
 
@@ -534,11 +582,52 @@ ExitTxt:
 **** Project MenuItems
 
 	EVEN
+NewMenuItem:
+	dc.l SaveMenuItem
+	dc.w 0,0
+	dc.w 120,10
+	dc.w ITEMTEXT!COMMSEQ!ITEMENABLED!HIGHCOMP
+	dc.l 0
+	dc.l NewTxt
+	dc.l 0
+	dc.b 'N'
+	dc.b 0
+	dc.l 0
+	dc.w 0
+
+	EVEN
+SaveMenuItem:
+	dc.l SaveAsMenuItem
+	dc.w 0,12
+	dc.w 120,10			; width, height
+	dc.w ITEMTEXT!COMMSEQ!ITEMENABLED!HIGHCOMP
+	dc.l 0
+	dc.l SaveTxt
+	dc.l 0
+	dc.b 'S'
+	dc.b 0
+	dc.l 0
+	dc.w 0
+	
+	EVEN
+SaveAsMenuItem:
+	dc.l ExitMenuItem
+	dc.w 0,24
+	dc.w 120,10
+	dc.w ITEMTEXT!COMMSEQ!ITEMENABLED!HIGHCOMP
+	dc.l 0
+	dc.l SaveAsTxt
+	dc.l 0
+	dc.b 'A'
+	dc.b 0
+	dc.l 0
+	dc.w 0
+	
+	EVEN
 ExitMenuItem:
 	dc.l 0				; next item
-	dc.w 0,0			; left, top
-	dc.w 80				; width
-	dc.w 10				; height
+	dc.w 0,36			; left, top
+	dc.w 120,10			; width, height
 ; flags
 	dc.w ITEMTEXT!COMMSEQ!ITEMENABLED!HIGHCOMP
 	dc.l 0				; mutual exclusion
@@ -570,23 +659,23 @@ NewSpriteMenuItem:
 ; TODO: dynamically compute the sizes/positions of things
 
 SpritesMenu:
-	dc.l 0				; next menu
-	dc.w 82,0			; left/top
-	dc.w 80				; width
-	dc.w 10				; height
-	dc.w MENUENABLED		; flags
-	dc.l SpritesStr			; text
+	dc.l 0						; next menu
+	dc.w 82,0					; left/top
+	dc.w 60						; width
+	dc.w 10						; height
+	dc.w MENUENABLED			; flags
+	dc.l SpritesStr				; text
 	dc.l NewSpriteMenuItem		; first item
 	dc.w 0,0,0,0
 
 ProjMenu:
 	dc.l SpritesMenu		; next menu
 	dc.w 2,0				; left, top
-	dc.w 80					; width
-	dc.w 10					; height
+	dc.w 60					; width
+	dc.w 30					; height
 	dc.w MENUENABLED		; flags
 	dc.l ProjStr			; text
-	dc.l ExitMenuItem		; first item
+	dc.l NewMenuItem		; first item
 	dc.w 0,0,0,0			; for internal use only
 
 ******** Menu Handler Tables
@@ -595,6 +684,7 @@ MenuHandlers:
 	dc.l ProjMenuHandlers,SpritesMenuHandlers
 
 ProjMenuHandlers:
+	dc.l NewItemHandler,SaveItemHandler,SaveAsItemHandler
 	dc.l QuitItemHandler
 
 SpritesMenuHandlers:
