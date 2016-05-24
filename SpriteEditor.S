@@ -310,8 +310,14 @@ SpriteEditorGadgetUp:
 	move.w gg_GadgetID(a1),d0
 	cmp.w #4,d0								; is this a pal button?
 	blt.s SetSpriteEditorPen
+	cmp.w #NAME_ID,d0
+	beq.s UpdateName
 	rts
  XDEF SpriteEditorGadgetUp
+****************
+* a0 - ptr to SpriteEditor
+UpdateName:
+	bra.s SetUnsaved
 ****************
 * a0 - ptr to SpriteEditor
 * d0 - new pen colour
@@ -517,6 +523,7 @@ PX_HEIGHT	=7
 PREV_ID		=$100
 NEXT_ID		=$200
 PASSABLE_ID	=$400
+NAME_ID		=$800
 
 	EVEN
 GridPoints:
@@ -611,14 +618,14 @@ SprEditorTemplate:
 	dc.w 35,4							; left, top
 	dc.w SPRNAME_WIDTH,SPRNAME_HEIGHT
 	dc.w GADGHCOMP
-    dc.w 0								; activation
+    dc.w GACT_RELVERIFY					; activation
 	dc.w GTYP_STRGADGET
 	dc.l SprNameBorder
 	dc.l 0								; no selected render
 	dc.l 0								; no text
 	dc.l 0								; no mutual exclude
 	dc.l SpriteEditor_NameSI
-	dc.w 0								; no ID
+	dc.w NAME_ID
 	dc.l 0								; no special user data
 .nameSI:
 	dc.l SpriteEditor_NameBuf
