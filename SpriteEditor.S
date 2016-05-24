@@ -547,7 +547,7 @@ SprEditorTemplate:
 	dc.l 0								; next
 	dc.l 0								; prev
 	dc.l 0								; window
-	dc.b "Sprite xxx",0					; title
+	dc.b "Sprite xx",0,0				; title
 	dc.b 0								; quit
 .numGG:
 	dc.l SpriteEditor_NameGG			; next gadget
