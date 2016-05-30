@@ -4,3 +4,4 @@
 	XREF IntuiBase
 	XREF GfxBase
 	XREF ReqBase
+	XREF DosBase

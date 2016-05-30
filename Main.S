@@ -52,8 +52,17 @@ Start:
 	tst.l d0
 	beq.s .closeGfx
 	move.l d0,ReqBase
+.initDos:
+	lea.l DosName,a1
+	bsr.s InitLib
+	tst.l d0
+	beq.s .closeReq
 ; libraries loaded, start program
 	bsr.w Main
+.closeDos:
+	move.l DosBase,a1
+	move.l 4.w,a6
+	jsr _LVOCloseLibrary(a6)
 .closeReq:
 	move.l ReqBase,a1
 	move.l 4.w,a6
@@ -506,6 +515,9 @@ GfxName:
 
 ReqName:
 	dc.b "reqtools.library",0
+
+DosName:
+	dc.b "dos.library",0
 	
 SelectProjectTxt:
 	dc.b "Select Project to Create or Load",0
