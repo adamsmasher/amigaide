@@ -4,6 +4,7 @@
 	INCLUDE "graphics/graphics_lib.i"
 	INCLUDE "intuition/intuition.i"
 	INCLUDE "intuition/intuition_lib.i"
+	INCLUDE "reqtools.i"
 
 	INCLUDE "globals.i"
 	INCLUDE "SpriteEditor.i"
@@ -40,8 +41,21 @@ Start:
 	tst.l d0		; success?
 	beq.s .closeIntui
 	move.l d0,GfxBase
+.initReq:
+	; we can't just use InitLib, bc we need a higher version
+	lea.l ReqName,a1
+	move.l 4.w,a6
+	moveq #REQTOOLSVERSION,d0
+	jsr _LVOOpenLibrary(a6)
+	tst.l d0
+	beq.s .closeGfx
+	move.l d0,ReqBase
 ; libraries loaded, start program
 	bsr.s Main
+.closeReq:
+	move.l ReqBase,a1
+	move.l 4.w,a6
+	jsr _LVOCloseLibrary(a6)
 .closeGfx:
 	move.l GfxBase,a1	; a1=lib-to-close=gfx
 	move.l 4.w,a6		; a6=exec base addr
@@ -59,8 +73,10 @@ InitLib:
 	jsr _LVOOpenLibrary(a6)	; d0=lib
 	rts
 ****
-* assumes that Intuition and the Gfx lib have been loaded
+* assumes that libs have been loaded
 Main:
+
+
 .initGlobals:
 	clr.l FirstSprEditor
 .openScreen:
@@ -455,6 +471,9 @@ IntuiName:
 
 GfxName:
 	dc.b "graphics.library",0
+
+ReqName:
+	dc.b "reqtools.library",0
 
 	EVEN
 Palette:
