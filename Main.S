@@ -5,6 +5,7 @@
 	INCLUDE "intuition/intuition.i"
 	INCLUDE "intuition/intuition_lib.i"
 	INCLUDE "reqtools.i"
+	INCLUDE "reqtools_lib.i"
 
 	INCLUDE "globals.i"
 	INCLUDE "SpriteEditor.i"
@@ -22,6 +23,7 @@ BorderLeft:		ds.b 1
 BorderRight:	ds.b 1
 BorderBottom:	ds.b 1
 QuitFlag:		ds.b 1
+ProjectFilename:ds.b 108
 
 ****************
 
@@ -51,7 +53,7 @@ Start:
 	beq.s .closeGfx
 	move.l d0,ReqBase
 ; libraries loaded, start program
-	bsr.s Main
+	bsr.w Main
 .closeReq:
 	move.l ReqBase,a1
 	move.l 4.w,a6
@@ -73,10 +75,40 @@ InitLib:
 	jsr _LVOOpenLibrary(a6)	; d0=lib
 	rts
 ****
+* returns Z if cancelled, otherwise NZ and path in ProjectFilename
+SelectProject:
+	movem.l d2/a2-a4,-(sp)
+.allocReq:
+	move.l #RT_FILEREQ,d0
+	move.l #0,a0
+	move.l ReqBase,a6
+	jsr _LVOrtAllocRequestA(a6)
+	tst.l d0
+	beq.s .done
+	move.l d0,a4
+.callReq:
+	move.l #0,a0
+	move.l a4,a1
+	lea.l ProjectFilename,a2
+	clr.b (a2)
+	lea.l SelectProjectTxt,a3
+	move.l ReqBase,a6
+	jsr _LVOrtFileRequestA(a6)
+	move.l d0,d2
+.freeReq:
+	move.l a4,a1
+	move.l ReqBase,a6
+	jsr _LVOrtFreeRequest(a6)
+.retCode:
+	tst.l d2
+.done:
+	movem.l (sp)+,d2/a2-a4
+	rts
+****
 * assumes that libs have been loaded
 Main:
-
-
+	bsr.s SelectProject
+	beq.w .done
 .initGlobals:
 	clr.l FirstSprEditor
 .openScreen:
@@ -474,6 +506,9 @@ GfxName:
 
 ReqName:
 	dc.b "reqtools.library",0
+	
+SelectProjectTxt:
+	dc.b "Select Project to Create or Load",0
 
 	EVEN
 Palette:
