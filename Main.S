@@ -1,3 +1,5 @@
+	INCLUDE "dos/dos.i"
+	INCLUDE "dos/dos_lib.i"
 	INCLUDE "exec/exec.i"
 	INCLUDE "exec/exec_lib.i"
 	INCLUDE "graphics/gfx.i"
