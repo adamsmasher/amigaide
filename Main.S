@@ -59,6 +59,7 @@ Start:
 	bsr.s InitLib
 	tst.l d0
 	beq.s .closeReq
+	move.l d0,DosBase
 ; libraries loaded, start program
 	bsr.w Main
 .closeDos:
