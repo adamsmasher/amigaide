@@ -279,10 +279,8 @@ DrawGrid:
 	rts
 ****************
 * a0 - ptr to sprite editor
-SetUnsaved:
+RedrawTitle:
 	move.l a2,-(sp)
-	move.b #1,SpriteEditor_Unsaved(a0)
-	move.b #'*',SpriteEditor_Title+9(a0)
 	lea.l SpriteEditor_Title(a0),a1
 	move.l SpriteEditor_Window(a0),a0
 	move.l #-1,a2							; don't change screen title
@@ -290,6 +288,12 @@ SetUnsaved:
 	jsr _LVOSetWindowTitles(a6)
 	move.l (sp)+,a2
 	rts
+****************
+* a0 - ptr to sprite editor
+SetUnsaved:
+	move.b #1,SpriteEditor_Unsaved(a0)
+	move.b #'*',SpriteEditor_Title+9(a0)
+	bra.s RedrawTitle
 ****************
 * a0 - ptr to SpriteEditor
 * a1 - ptr to gadget clicked
