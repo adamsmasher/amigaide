@@ -571,6 +571,11 @@ NewSpriteItemHandler:
 	move.l a0,FirstSprEditor					; first = new
 	move.l SpriteEditor_Window(a0),a0
 	bsr.w AddWinToSigMask
+.init:
+	move.l FirstSprEditor,a0
+	move.b TilesetCnt,d0
+	jsr SetSpriteEditorNum
+	addq.b #1,TilesetCnt
 .done:
 	rts
 ****

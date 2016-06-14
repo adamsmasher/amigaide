@@ -493,6 +493,16 @@ CloseSpriteEditor:
 	XDEF CloseSpriteEditor
 
 	SECTION MyData,DATA
+****************
+* a0 - ptr to SpriteEditor
+* d0 - sprite editor num
+SetSpriteEditorNum:
+	move.b d0,SpriteEditor_Num(a0)
+	; TODO: update title
+	; TODO: update display widget
+	rts
+	
+	XDEF SetSpriteEditorNum
 ******** Sprite window
 **** Constants
 
@@ -754,6 +764,10 @@ SprEditorTemplate:
 	dc.b 3								; 0b0000.0011 - planes 0 and 1
 	dc.b 0								; planeonoff
 	dc.l 0
+.tsnum:
+	dc.b 0
+.unused:
+	dc.b 0
 
 SprEditPatchLocs:
 	dc.l SpriteEditor_NumGG+gg_NextGadget
