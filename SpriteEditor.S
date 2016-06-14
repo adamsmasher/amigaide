@@ -4,6 +4,8 @@
 	INCLUDE "graphics/graphics_lib.i"
 	INCLUDE "intuition/intuition.i"
 	INCLUDE "intuition/intuition_lib.i"
+	
+	INCLUDE "bcd_intf.i"
 
 	INCLUDE "globals.i"
 
@@ -495,18 +497,33 @@ CloseSpriteEditor:
 	jmp _LVOFreeMem(a6)
 
 	XDEF CloseSpriteEditor
-
-	SECTION MyData,DATA
 ****************
 * a0 - ptr to SpriteEditor
 * d0 - sprite editor num
 SetSpriteEditorNum:
-	move.b d0,SpriteEditor_Num(a0)
-	; TODO: update title
+	move.l a2,-(sp)
+	move.l a0,a2
+	move.b d0,SpriteEditor_Num(a2)
+	lea.l TensTable,a0
+	move.b (a0,d0),d1
+	lsr.b #4,d1
+	add.b #'0',d1							; d1 = tens digit ASCII
+	move.b d1,SpriteEditor_Title+7(a2)
+	lea.l OnesTable,a0
+	move.b (a0,d0),d1
+	add.b #'0',d1							; d0 = ones digit ASCII
+	move.b d1,SpriteEditor_Title+8(a2)
+	bsr.w RedrawTitle
+	move.l SpriteEditor_Window(a2),a0
+	move.l IntuiBase,a6
+	jsr _LVORefreshWindowFrame(a6)
 	; TODO: update display widget
+	move.l (sp)+,a2
 	rts
 	
 	XDEF SetSpriteEditorNum
+
+	SECTION MyData,DATA
 ******** Sprite window
 **** Constants
 
