@@ -26,6 +26,7 @@ BorderRight:	ds.b 1
 BorderBottom:	ds.b 1
 QuitFlag:		ds.b 1
 ProjectFilename:ds.b 108
+TilesetCnt:		ds.b 1
 
 ****************
 
@@ -117,9 +118,88 @@ SelectProject:
 	movem.l (sp)+,d2/a2-a4
 	rts
 ****
+* Returns Z if the header is OK, otherwise NZ
+ValidateHeader:
+	movem.l d2-d3,-(sp)
+	subq.l #4,sp
+	move.l d0,d1
+	move.l sp,d2
+	move.l #4,d3
+	move.l DosBase,a6
+	jsr _LVORead(a6)
+	cmp.l #'FRAC',(sp)
+	bne.s .done
+	cmp.l #4,d0
+.done:
+	addq.l #4,sp
+	movem.l (sp)+,d2-d3
+	rts
+****
+* Attempts to load the project in ProjectFilename
+* returns Z on failure and NZ on success
+LoadProject:
+	movem.l d2-d4,-(sp)
+	move.l #ProjectFilename,d1
+	move.l #MODE_OLDFILE,d2
+	move.l DosBase,a6
+	jsr _LVOOpen(a6)
+	tst.l d0
+	beq.s .done
+	move.l d0,d4				; d4 = file
+	bsr.w ValidateHeader
+	bne.s .done
+	move.l d4,d1				; d1 = file
+	move.l #TilesetCnt,d2
+	move.l #1,d3
+	move.l DosBase,a6
+	jsr _LVORead(a6)
+; TODO: actually load the contents of the file
+	move.l d4,d1
+	move.l DosBase,a6
+	jsr _LVOClose(a6)
+.done:
+	movem.l (sp)+,d2-d4
+	rts
+****
+* Creates a dummy project in ProjectFilename
+CreateProject:
+	movem.l d2-d4,-(sp)
+.openFile:
+	move.l #ProjectFilename,d1
+	move.l #MODE_NEWFILE,d2
+	move.l DosBase,a6
+	jsr _LVOOpen(a6)
+	tst.l d0
+	beq.s .done
+	move.l d0,d4			; d4 = File
+.writeHeader:
+	move.l d4,d1			; d1 = File
+	subq.l #6,sp
+	move.l #'FRAC',(sp)
+	move.b #0,4(sp)
+	move.l sp,d2
+	moveq.l #5,d3
+	move.l DosBase,a6
+	jsr _LVOWrite(a6)
+	addq.l #6,sp
+.closeFile:
+	move.l d4,d1
+	move.l DosBase,a6
+	jsr _LVOClose(a6)
+.initProjectInMemory
+	clr.b TilesetCnt
+	and.b #$1B,ccr
+.done:
+	movem.l (sp)+,d2-d4
+	rts
+****
 * assumes that libs have been loaded
 Main:
-	bsr.s SelectProject
+	bsr.w SelectProject
+	beq.w .done						; if there was an error, quit
+	bsr.w LoadProject
+	bne.s .initGlobals
+	bsr.s CreateProject
 	beq.w .done
 .initGlobals:
 	clr.l FirstSprEditor
@@ -169,7 +249,8 @@ Main:
 .closeScreen:	
 	move.l ScrP,a0
 	jsr _LVOCloseScreen(a6)
-.done:	rts
+.done:
+	rts
 ****
 SetupScr:
 	bsr.s InitBorderInfo
