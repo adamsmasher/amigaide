@@ -10,6 +10,7 @@
 	INCLUDE "reqtools_lib.i"
 
 	INCLUDE "globals.i"
+	INCLUDE "Project.i"
 	INCLUDE "SpriteEditor.i"
 	INCLUDE "SpriteEditor_intf.i"
 
@@ -26,7 +27,7 @@ BorderRight:	ds.b 1
 BorderBottom:	ds.b 1
 QuitFlag:		ds.b 1
 ProjectFilename:ds.b 108
-TilesetCnt:		ds.b 1
+Project:		ds.b PROJECT_SIZEOF
 
 ****************
 
@@ -149,11 +150,10 @@ LoadProject:
 	bsr.w ValidateHeader
 	bne.s .done
 	move.l d4,d1				; d1 = file
-	move.l #TilesetCnt,d2
-	move.l #1,d3
+	move.l #Project,d2
+	move.l #PROJECT_SIZEOF,d3
 	move.l DosBase,a6
 	jsr _LVORead(a6)
-; TODO: actually load the contents of the file
 	move.l d4,d1
 	move.l DosBase,a6
 	jsr _LVOClose(a6)
@@ -164,6 +164,12 @@ LoadProject:
 * Creates a dummy project in ProjectFilename
 CreateProject:
 	movem.l d2-d4,-(sp)
+.initProjectInMem:
+	lea.l Project,a0
+	move.w #((PROJECT_SIZEOF/2)-1),d0		; d0 = number of words to clear
+.loop:
+	clr.w (a0)+
+	dbra d0,.loop
 .openFile:
 	move.l #ProjectFilename,d1
 	move.l #MODE_NEWFILE,d2
@@ -174,21 +180,23 @@ CreateProject:
 	move.l d0,d4			; d4 = File
 .writeHeader:
 	move.l d4,d1			; d1 = File
-	subq.l #6,sp
+	subq.l #4,sp
 	move.l #'FRAC',(sp)
-	move.b #0,4(sp)
 	move.l sp,d2
-	moveq.l #5,d3
+	moveq.l #4,d3			; d3 = write 4 bytes
 	move.l DosBase,a6
 	jsr _LVOWrite(a6)
-	addq.l #6,sp
+	addq.l #4,sp
+.writeProject:
+	move.l d4,d1			; d1 = File
+	move.l #Project,d2
+	move.l #PROJECT_SIZEOF,d3
+	move.l DosBase,a6
+	jsr _LVOWrite(a6)
 .closeFile:
 	move.l d4,d1
 	move.l DosBase,a6
 	jsr _LVOClose(a6)
-.initProjectInMemory
-	clr.b TilesetCnt
-	and.b #$1B,ccr
 .done:
 	movem.l (sp)+,d2-d4
 	rts
@@ -199,7 +207,7 @@ Main:
 	beq.w .done						; if there was an error, quit
 	bsr.w LoadProject
 	bne.s .initGlobals
-	bsr.s CreateProject
+	bsr.w CreateProject
 	beq.w .done
 .initGlobals:
 	clr.l FirstSprEditor
@@ -573,9 +581,9 @@ NewSpriteItemHandler:
 	bsr.w AddWinToSigMask
 .init:
 	move.l FirstSprEditor,a0
-	move.b TilesetCnt,d0
+	move.b Project+Project_TilesetCnt,d0
 	jsr SetSpriteEditorNum
-	addq.b #1,TilesetCnt
+	addq.b #1,Project+Project_TilesetCnt
 .done:
 	rts
 ****
