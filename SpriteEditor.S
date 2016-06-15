@@ -517,7 +517,6 @@ SetSpriteEditorNum:
 	move.l SpriteEditor_Window(a2),a0
 	move.l IntuiBase,a6
 	jsr _LVORefreshWindowFrame(a6)
-	; TODO: update display widget
 	move.l (sp)+,a2
 	rts
 	
