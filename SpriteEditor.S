@@ -779,8 +779,7 @@ SprEditorTemplate:
 ; TODO: this varies
 	dc.w 16,16							; width, height
 	dc.w 2								; depth
-; TODO: dynamically allocate this
-	dc.l TmpImage						; image data
+	dc.l OnscreenImage					; image data
 	dc.b 3								; 0b0000.0011 - planes 0 and 1
 	dc.b 0								; planeonoff
 	dc.l 0
@@ -968,7 +967,7 @@ PassableText:
 	dc.l 0
 
  SECTION ImageData,DATA_C
-TmpImage:
+OnscreenImage:
 .bp1
 	dc.b 0,0,0,0,0,0,0,0
 	dc.b 0,0,0,0,0,0,0,0
