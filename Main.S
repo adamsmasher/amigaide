@@ -557,7 +557,8 @@ NewItemHandler:
 	rts
 ****
 SaveItemHandler:
-	rts
+	; TODO: update unsaved status on Editors
+	bra.w SaveProject
 ****
 SaveAsItemHandler:
 	rts
