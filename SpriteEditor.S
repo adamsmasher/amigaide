@@ -9,6 +9,7 @@
 
 	INCLUDE "globals.i"
 
+	INCLUDE "Project.i"
 	INCLUDE "SpriteEditor.i"
 
 	SECTION SpriteEditor,CODE
@@ -51,9 +52,11 @@ PatchNewWin:
 	move.l a0,nw_Title(a1)
 	rts
 ****************
-* returns in d0 address of new sprite editor, or NULL on failure
+* d0 - Tileset number
+* returns in d0 address of new tile editor, or NULL on failure
 NewSpriteEditor:
 	movem.l a2-a3,-(sp)
+	move.w d0,-(sp)
 	bsr.s AllocEditor
 	tst.l d0							; success?
 	beq.w .done							; fail otherwise
@@ -64,6 +67,9 @@ NewSpriteEditor:
 	bsr.s PatchEditorOffsets
 	move.l a3,a0						; a0 = SpriteEditor ptr
 	bsr.s PatchNewWin
+	move.w (sp)+,d0
+	move.l a3,a0
+	bsr.w SetSpriteEditorNum
 .openWindow:
 	lea.l SprNewWin,a0
 	move.l IntuiBase,a6
@@ -498,12 +504,18 @@ CloseSpriteEditor:
 
 	XDEF CloseSpriteEditor
 ****************
+* Called during construction to set the sprite editor num
 * a0 - ptr to SpriteEditor
 * d0 - sprite editor num
 SetSpriteEditorNum:
 	move.l a2,-(sp)
-	move.l a0,a2
+	move.l a0,a2							; a2 = SpriteEditor
 	move.b d0,SpriteEditor_Num(a2)
+	lea.l Project+Project_TilesetNames,a0
+	move.b d0,d1							; d1 = Tileset number
+	lsl.b #4,d1								; d1 = Offset into tileset names
+	lea.l (a0,d1),a0						; a0 = ptr to name
+	move.l a0,SpriteEditor_NameSI+si_Buffer(a2)	
 	lea.l TensTable,a0
 	move.b (a0,d0),d1
 	lsr.b #4,d1
@@ -513,14 +525,8 @@ SetSpriteEditorNum:
 	move.b (a0,d0),d1
 	add.b #'0',d1							; d0 = ones digit ASCII
 	move.b d1,SpriteEditor_Title+8(a2)
-	bsr.w RedrawTitle
-	move.l SpriteEditor_Window(a2),a0
-	move.l IntuiBase,a6
-	jsr _LVORefreshWindowFrame(a6)
 	move.l (sp)+,a2
 	rts
-	
-	XDEF SetSpriteEditorNum
 
 	SECTION MyData,DATA
 ******** Sprite window
@@ -658,7 +664,7 @@ SprEditorTemplate:
 	dc.w NAME_ID
 	dc.l 0								; no special user data
 .nameSI:
-	dc.l SpriteEditor_NameBuf
+	dc.l 0								; point into global data
 	dc.l 0								; no undo buffer
 	dc.w 0								; buffer pos
 	dc.w 16								; max chars + NULL
@@ -670,8 +676,6 @@ SprEditorTemplate:
 	dc.l 0								; unused
 	dc.l 0								; long int
 	dc.l 0								; default key map
-.nameBuf:
-	dcb.b 16,0
 .palGGs0:
 	dc.l SpriteEditor_PalGGs+gg_SIZEOF	; next gadget
 	dc.w PAL_LEFT,PAL_TOP				; left, top
@@ -794,7 +798,6 @@ SprEditPatchLocs:
 	dc.l SpriteEditor_NumSI+si_Buffer
 	dc.l SpriteEditor_NameGG+gg_NextGadget
 	dc.l SpriteEditor_NameGG+gg_SpecialInfo
-	dc.l SpriteEditor_NameSI+si_Buffer
 	dc.l SpriteEditor_PalGGs+gg_NextGadget
 	dc.l SpriteEditor_PalGGs+gg_SIZEOF+gg_NextGadget
 	dc.l SpriteEditor_PalGGs+(gg_SIZEOF*2)+gg_NextGadget

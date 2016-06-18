@@ -9,7 +9,6 @@ SpriteEditor_NumSI:		rs.b si_SIZEOF
 SpriteEditor_NumBuf:	rs.b 4
 SpriteEditor_NameGG:	rs.b gg_SIZEOF
 SpriteEditor_NameSI:	rs.b si_SIZEOF
-SpriteEditor_NameBuf:	rs.b 16
 SpriteEditor_PalGGs:	rs.b gg_SIZEOF*4
 SpriteEditor_PrevGG:	rs.b gg_SIZEOF
 SpriteEditor_NextGG:	rs.b gg_SIZEOF

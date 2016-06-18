@@ -564,9 +564,11 @@ QuitItemHandler:
 	rts
 ****
 NewSpriteItemHandler:
+	move.b Project+Project_TilesetCnt,d0
 	jsr NewSpriteEditor
 	tst.l d0
 	beq.s .done
+	addq.b #1,Project+Project_TilesetCnt
 .install:
 	move.l d0,a0								; a0 = new
 	move.l FirstSprEditor,SpriteEditor_Next(a0)
@@ -578,11 +580,6 @@ NewSpriteItemHandler:
 	move.l a0,FirstSprEditor					; first = new
 	move.l SpriteEditor_Window(a0),a0
 	bsr.w AddWinToSigMask
-.init:
-	move.l FirstSprEditor,a0
-	move.b Project+Project_TilesetCnt,d0
-	jsr SetSpriteEditorNum
-	addq.b #1,Project+Project_TilesetCnt
 .done:
 	rts
 ****
