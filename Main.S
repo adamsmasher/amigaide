@@ -561,6 +561,11 @@ SaveItemHandler:
 	bra.w SaveProject
 ****
 SaveAsItemHandler:
+	bsr.w SelectProject
+	beq.s .done
+	bra.w SaveProject
+	; TODO: update unsaved status on Editors
+.done:
 	rts
 ****
 QuitItemHandler:
