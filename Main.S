@@ -160,15 +160,9 @@ LoadProject:
 	movem.l (sp)+,d2-d4
 	rts
 ****
-* Creates a dummy project in ProjectFilename
-CreateProject:
+* Writes the currently loaded project to disk
+SaveProject:
 	movem.l d2-d4,-(sp)
-.initProjectInMem:
-	lea.l Project,a0
-	move.w #((PROJECT_SIZEOF/2)-1),d0		; d0 = number of words to clear
-.loop:
-	clr.w (a0)+
-	dbra d0,.loop
 .openFile:
 	move.l #ProjectFilename,d1
 	move.l #MODE_NEWFILE,d2
@@ -200,13 +194,22 @@ CreateProject:
 	movem.l (sp)+,d2-d4
 	rts
 ****
+* Creates a dummy project in ProjectFilename
+CreateProject:
+	lea.l Project,a0
+	move.w #((PROJECT_SIZEOF/2)-1),d0		; d0 = number of words to clear
+.loop:
+	clr.w (a0)+
+	dbra d0,.loop
+	bra.w SaveProject
+****
 * assumes that libs have been loaded
 Main:
 	bsr.w SelectProject
 	beq.w .done						; if there was an error, quit
 	bsr.w LoadProject
 	bne.s .initGlobals
-	bsr.w CreateProject
+	bsr.s CreateProject				; if we couldn't open it, create it
 	beq.w .done
 .initGlobals:
 	clr.l FirstSprEditor
