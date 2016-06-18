@@ -5,3 +5,4 @@
 	XREF GfxBase
 	XREF ReqBase
 	XREF DosBase
+	XREF Project

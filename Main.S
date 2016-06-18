@@ -27,7 +27,6 @@ BorderRight:	ds.b 1
 BorderBottom:	ds.b 1
 QuitFlag:		ds.b 1
 ProjectFilename:ds.b 108
-Project:		ds.b PROJECT_SIZEOF
 
 ****************
 
