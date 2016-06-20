@@ -379,8 +379,10 @@ MainLoop:
 MsgLoop:
 	move.l d0,-(sp)
 	bsr.s ChkForProjMsgs
-	move.l (sp)+,d0				; d0=Signals
+	move.l (sp),d0				; d0=Signals
 	bsr.s ChkForSprEditorMsgs
+	move.l (sp)+,d0				; d0=Signals
+	bsr.s ChkForBrowserMsgs
 	rts
 ****
 * a0 - window to check for
@@ -403,6 +405,15 @@ ChkForProjMsgs:
 	rts
 ****
 * d0 - bitmask of signals that occurred
+ChkForBrowserMsgs:
+	move.l TilesetBrowser,a0
+	bsr.s ChkForWinMsgs
+	beq.s .done
+	bsr.s HandleBrowserMsgs
+.done:
+	rts
+****
+* d0 - bitmask of signals that occurred
 ChkForSprEditorMsgs:
 	movem.l d2/a2,-(sp)
 	move.l d0,d2							; d2 = sig set
@@ -414,7 +425,7 @@ ChkForSprEditorMsgs:
 	bsr.s ChkForWinMsgs
 	beq.s .next
 	move.l a2,a0
-	bsr.s HandleSprEditorMsgs
+	bsr.w HandleSprEditorMsgs
 .next:
 	move.l SpriteEditor_Next(a2),a2
 .test:
@@ -458,6 +469,26 @@ HandleProjMsgs:
 	move.l (sp)+,a2
 	rts
 ****
+HandleBrowserMsgs:
+	move.l a2,-(sp)
+	move.l TilesetBrowser,a2
+	move.l wd_UserPort(a2),a2
+.loop:
+	move.l a2,a0
+	bsr.s GetAckMsg
+	tst.l d0
+	beq.s .done
+.closeWindow:
+	move.l TilesetBrowser,a0
+	bsr.w RemWinFromSigMask
+	move.l TilesetBrowser,a0
+	jsr CloseTilesetBrowser
+	clr.l TilesetBrowser
+	bra.s .loop
+.done:
+	move.l (sp)+,a2
+	rts
+****
 * a0 - contains ptr to sprite editor
 HandleSprEditorMsgs:
 	movem.l d2/a2-a3,-(sp)
@@ -466,7 +497,7 @@ HandleSprEditorMsgs:
 	move.l wd_UserPort(a0),a2
 .loop:
 	move.l a2,a0						; a0=UserPort
-	bsr.s GetAckMsg
+	bsr.w GetAckMsg
 	tst.l d0
 	beq.w .done
 	move.l d0,a0						; a0=Msg
@@ -591,6 +622,8 @@ OpenTilesetItemHandler:
 	bne.s .done
 	jsr NewTilesetBrowser
 	move.l d0,TilesetBrowser
+	move.l d0,a0
+	bsr.w AddWinToSigMask
 .done:
 	rts
 ****

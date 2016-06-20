@@ -4,13 +4,21 @@
  INCLUDE "globals.i"
 
  SECTION TilesetBrowser,CODE
+****
+* returns in d0 pointer to the new Tileset Browser (window, for now TODO)
 NewTilesetBrowser:
 	lea.l BrowserNewWin,a0
 	move.l IntuiBase,a6
-	jsr _LVOOpenWindow(a6)
-	rts
+	jmp _LVOOpenWindow(a6)
  XDEF NewTilesetBrowser
+****************
+* a0 - ptr to Tileset Browser (window, for now TODO)
+CloseTilesetBrowser:
+	move.l IntuiBase,a6
+	jmp _LVOCloseWindow(a6)
+ XDEF CloseTilesetBrowser
 
+ SECTION TilesetBrowserData,DATA
 BrowserTitle:
     dc.b "Tileset Browser",0
 
