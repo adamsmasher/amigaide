@@ -812,7 +812,7 @@ ExitMenuItem:
 	dc.l 0				; sub-item
 	dc.w 0				; "next select"
 
-**** Sprites MenuItems
+**** Tilesets MenuItems
 
 NewTilesetMenuItem:
 	dc.l OpenTilesetMenuItem	; next item
