@@ -817,7 +817,7 @@ ExitMenuItem:
 NewTilesetMenuItem:
 	dc.l OpenTilesetMenuItem	; next item
 	dc.w 0,0					; left, top
-	dc.w 100,10					; width
+	dc.w 130,10					; width
 	dc.w ITEMTEXT!ITEMENABLED!HIGHCOMP
 	dc.l 0						; mutual exclusion
 	dc.l NewTilesetTxt
@@ -830,7 +830,7 @@ NewTilesetMenuItem:
 OpenTilesetMenuItem:
 	dc.l 0						; next item
 	dc.w 0,12					; left,top
-	dc.w 100,10					; width,height
+	dc.w 130,10					; width,height
 	dc.w ITEMTEXT!ITEMENABLED!HIGHCOMP
 	dc.l 0						; mutual exclusion
 	dc.l OpenTilesetTxt
@@ -848,7 +848,7 @@ OpenTilesetMenuItem:
 TilesetsMenu:
 	dc.l 0						; next menu
 	dc.w 82,0					; left/top
-	dc.w 60						; width
+	dc.w 70						; width
 	dc.w 10						; height
 	dc.w MENUENABLED			; flags
 	dc.l TilesetsStr			; text
