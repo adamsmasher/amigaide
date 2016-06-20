@@ -583,6 +583,9 @@ NewSpriteItemHandler:
 .done:
 	rts
 ****
+OpenTilesetItemHandler:
+	rts
+****
 CloseSpriteEditors:
 	move.l d2,-(sp)
 	move.l FirstSprEditor,d2
@@ -672,6 +675,9 @@ SpritesStr:
 NewSpriteStr:
 	dc.b "New Sprite...",0
 
+OpenTilesetStr:
+	dc.b "Open Tileset...",0
+
 	EVEN
 NewSpriteTxt:
 	dc.b 0,0			; pens
@@ -681,6 +687,15 @@ NewSpriteTxt:
 	dc.l 0				; default font
 	dc.l NewSpriteStr
 	dc.l 0				; next
+
+OpenTilesetTxt:
+	dc.b 0,0
+	dc.b 0
+	dc.b 0
+	dc.w 0,0
+	dc.l 0
+	dc.l OpenTilesetStr
+	dc.l 0
 
 **** Proj Menu Text
 
@@ -800,18 +815,31 @@ ExitMenuItem:
 **** Sprites MenuItems
 
 NewSpriteMenuItem:
-	dc.l 0				; next item
-	dc.w 0,0			; left, top
-	dc.w 100			; width
-	dc.w 10				; height
+	dc.l OpenTilesetMenuItem		; next item
+	dc.w 0,0					; left, top
+	dc.w 100,10					; width
 	dc.w ITEMTEXT!ITEMENABLED!HIGHCOMP
-	dc.l 0				; mutual exclusion
+	dc.l 0						; mutual exclusion
 	dc.l NewSpriteTxt
-	dc.l 0				; no different highlighted text
-	dc.b 0				; no shortcut
-	dc.b 0				; padding
-	dc.l 0				; no subitems
-	dc.w 0				; next select
+	dc.l 0						; no different highlighted text
+	dc.b 0						; no shortcut
+	dc.b 0						; padding
+	dc.l 0						; no subitems
+	dc.w 0						; next select
+
+OpenTilesetMenuItem:
+	dc.l 0						; next item
+	dc.w 0,12					; left,top
+	dc.w 100,10					; width,height
+	dc.w ITEMTEXT!ITEMENABLED!HIGHCOMP
+	dc.l 0						; mutual exclusion
+	dc.l OpenTilesetTxt
+	dc.l 0
+	dc.b 0
+	dc.b 0
+	dc.l 0
+	dc.w 0
+	
 
 ******** Menus
 
@@ -847,7 +875,7 @@ ProjMenuHandlers:
 	dc.l QuitItemHandler
 
 SpritesMenuHandlers:
-	dc.l NewSpriteItemHandler
+	dc.l NewSpriteItemHandler,OpenTilesetItemHandler
 
 ******** NewWindow info
 
