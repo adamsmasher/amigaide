@@ -563,7 +563,7 @@ QuitItemHandler:
 	move.b #1,QuitFlag
 	rts
 ****
-NewSpriteItemHandler:
+NewTilesetItemHandler:
 	move.b Project+Project_TilesetCnt,d0
 	jsr NewSpriteEditor
 	tst.l d0
@@ -667,25 +667,25 @@ ProjNewWin:
 
 ******** Menu Text
 
-**** Sprites Menu Text
+**** Tilesets Menu Text
 
-SpritesStr:
-	dc.b "Sprites",0
+TilesetsStr:
+	dc.b "Tilesets",0
 
-NewSpriteStr:
-	dc.b "New Sprite...",0
+NewTilesetStr:
+	dc.b "New Tileset...",0
 
 OpenTilesetStr:
 	dc.b "Open Tileset...",0
 
 	EVEN
-NewSpriteTxt:
+NewTilesetTxt:
 	dc.b 0,0			; pens
 	dc.b 0				; draw mode (JAM1)
 	dc.b 0				; padding
 	dc.w 0,0			; left, top
 	dc.l 0				; default font
-	dc.l NewSpriteStr
+	dc.l NewTilesetStr
 	dc.l 0				; next
 
 OpenTilesetTxt:
@@ -814,13 +814,13 @@ ExitMenuItem:
 
 **** Sprites MenuItems
 
-NewSpriteMenuItem:
-	dc.l OpenTilesetMenuItem		; next item
+NewTilesetMenuItem:
+	dc.l OpenTilesetMenuItem	; next item
 	dc.w 0,0					; left, top
 	dc.w 100,10					; width
 	dc.w ITEMTEXT!ITEMENABLED!HIGHCOMP
 	dc.l 0						; mutual exclusion
-	dc.l NewSpriteTxt
+	dc.l NewTilesetTxt
 	dc.l 0						; no different highlighted text
 	dc.b 0						; no shortcut
 	dc.b 0						; padding
@@ -845,18 +845,18 @@ OpenTilesetMenuItem:
 
 ; TODO: dynamically compute the sizes/positions of things
 
-SpritesMenu:
+TilesetsMenu:
 	dc.l 0						; next menu
 	dc.w 82,0					; left/top
 	dc.w 60						; width
 	dc.w 10						; height
 	dc.w MENUENABLED			; flags
-	dc.l SpritesStr				; text
-	dc.l NewSpriteMenuItem		; first item
+	dc.l TilesetsStr			; text
+	dc.l NewTilesetMenuItem		; first item
 	dc.w 0,0,0,0
 
 ProjMenu:
-	dc.l SpritesMenu		; next menu
+	dc.l TilesetsMenu		; next menu
 	dc.w 2,0				; left, top
 	dc.w 60					; width
 	dc.w 30					; height
@@ -868,14 +868,14 @@ ProjMenu:
 ******** Menu Handler Tables
 
 MenuHandlers:
-	dc.l ProjMenuHandlers,SpritesMenuHandlers
+	dc.l ProjMenuHandlers,TilesetsMenuHandlers
 
 ProjMenuHandlers:
 	dc.l NewItemHandler,SaveItemHandler,SaveAsItemHandler
 	dc.l QuitItemHandler
 
-SpritesMenuHandlers:
-	dc.l NewSpriteItemHandler,OpenTilesetItemHandler
+TilesetsMenuHandlers:
+	dc.l NewTilesetItemHandler,OpenTilesetItemHandler
 
 ******** NewWindow info
 
