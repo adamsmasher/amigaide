@@ -1,2 +1,2 @@
-blink main.o spriteeditor.o globals.o bcd.o TO FracIDE
+blink main.o spriteeditor.o globals.o bcd.o tilesetbrowser.o TO FracIDE
 FracIDE

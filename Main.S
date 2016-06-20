@@ -13,6 +13,7 @@
 	INCLUDE "Project.i"
 	INCLUDE "SpriteEditor.i"
 	INCLUDE "SpriteEditor_intf.i"
+	INCLUDE "TilesetBrowser_intf.i"
 
 	jmp Start
 
@@ -21,6 +22,7 @@ ScrP:			ds.l 1
 ProjWinP:		ds.l 1
 SignalMask:		ds.l 1
 FirstSprEditor:	ds.l 1
+TilesetBrowser:	ds.l 1
 BorderTop:		ds.w 1
 BorderLeft:		ds.b 1
 BorderRight:	ds.b 1
@@ -584,6 +586,12 @@ NewTilesetItemHandler:
 	rts
 ****
 OpenTilesetItemHandler:
+	tst.l TilesetBrowser
+	; TODO: maybe activate the window instead
+	bne.s .done
+	jsr NewTilesetBrowser
+	move.l d0,TilesetBrowser
+.done:
 	rts
 ****
 CloseSpriteEditors:
@@ -880,5 +888,5 @@ TilesetsMenuHandlers:
 ******** NewWindow info
 
 AllNewWins:
-	dc.l SprNewWin,ProjNewWin
-NUM_OF_NEWWINS	=2
+	dc.l SprNewWin,ProjNewWin,BrowserNewWin
+NUM_OF_NEWWINS	=3
