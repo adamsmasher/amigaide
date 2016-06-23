@@ -618,14 +618,18 @@ NewTilesetItemHandler:
 ****
 OpenTilesetItemHandler:
 	tst.l TilesetBrowser
-	; TODO: maybe activate the window instead
-	bne.s .done
+	bne.s .activate
 	jsr NewTilesetBrowser
 	move.l d0,TilesetBrowser
 	move.l d0,a0
-	bsr.w AddWinToSigMask
-.done:
-	rts
+	bra.w AddWinToSigMask
+.activate:
+	move.l TilesetBrowser,a0
+	move.l IntuiBase,a6
+	jsr _LVOWindowToFront(a6)
+	move.l TilesetBrowser,a0
+	move.l IntuiBase,a6
+	jmp _LVOActivateWindow(a6)
 ****
 CloseSpriteEditors:
 	move.l d2,-(sp)
