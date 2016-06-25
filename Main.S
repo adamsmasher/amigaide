@@ -13,6 +13,7 @@
 	INCLUDE "Project.i"
 	INCLUDE "SpriteEditor.i"
 	INCLUDE "SpriteEditor_intf.i"
+	INCLUDE "TilesetBrowser_intf.i"
 
 	jmp Start
 
@@ -21,6 +22,7 @@ ScrP:			ds.l 1
 ProjWinP:		ds.l 1
 SignalMask:		ds.l 1
 FirstSprEditor:	ds.l 1
+TilesetBrowser:	ds.l 1
 BorderTop:		ds.w 1
 BorderLeft:		ds.b 1
 BorderRight:	ds.b 1
@@ -380,8 +382,10 @@ MainLoop:
 MsgLoop:
 	move.l d0,-(sp)
 	bsr.s ChkForProjMsgs
-	move.l (sp)+,d0				; d0=Signals
+	move.l (sp),d0				; d0=Signals
 	bsr.s ChkForSprEditorMsgs
+	move.l (sp)+,d0				; d0=Signals
+	bsr.s ChkForBrowserMsgs
 	rts
 ****
 * a0 - window to check for
@@ -404,6 +408,15 @@ ChkForProjMsgs:
 	rts
 ****
 * d0 - bitmask of signals that occurred
+ChkForBrowserMsgs:
+	move.l TilesetBrowser,a0
+	bsr.s ChkForWinMsgs
+	beq.s .done
+	bsr.s HandleBrowserMsgs
+.done:
+	rts
+****
+* d0 - bitmask of signals that occurred
 ChkForSprEditorMsgs:
 	movem.l d2/a2,-(sp)
 	move.l d0,d2							; d2 = sig set
@@ -415,7 +428,7 @@ ChkForSprEditorMsgs:
 	bsr.s ChkForWinMsgs
 	beq.s .next
 	move.l a2,a0
-	bsr.s HandleSprEditorMsgs
+	bsr.w HandleSprEditorMsgs
 .next:
 	move.l SpriteEditor_Next(a2),a2
 .test:
@@ -459,6 +472,26 @@ HandleProjMsgs:
 	move.l (sp)+,a2
 	rts
 ****
+HandleBrowserMsgs:
+	move.l a2,-(sp)
+	move.l TilesetBrowser,a2
+	move.l wd_UserPort(a2),a2
+.loop:
+	move.l a2,a0
+	bsr.s GetAckMsg
+	tst.l d0
+	beq.s .done
+.closeWindow:
+	move.l TilesetBrowser,a0
+	bsr.w RemWinFromSigMask
+	move.l TilesetBrowser,a0
+	jsr CloseTilesetBrowser
+	clr.l TilesetBrowser
+	bra.s .loop
+.done:
+	move.l (sp)+,a2
+	rts
+****
 * a0 - contains ptr to sprite editor
 HandleSprEditorMsgs:
 	movem.l d2/a2-a3,-(sp)
@@ -467,7 +500,7 @@ HandleSprEditorMsgs:
 	move.l wd_UserPort(a0),a2
 .loop:
 	move.l a2,a0						; a0=UserPort
-	bsr.s GetAckMsg
+	bsr.w GetAckMsg
 	tst.l d0
 	beq.w .done
 	move.l d0,a0						; a0=Msg
@@ -572,7 +605,7 @@ QuitItemHandler:
 	move.b #1,QuitFlag
 	rts
 ****
-NewSpriteItemHandler:
+NewTilesetItemHandler:
 	move.b Project+Project_TilesetCnt,d0
 	jsr NewSpriteEditor
 	tst.l d0
@@ -591,6 +624,21 @@ NewSpriteItemHandler:
 	bsr.w AddWinToSigMask
 .done:
 	rts
+****
+OpenTilesetItemHandler:
+	tst.l TilesetBrowser
+	bne.s .activate
+	jsr NewTilesetBrowser
+	move.l d0,TilesetBrowser
+	move.l d0,a0
+	bra.w AddWinToSigMask
+.activate:
+	move.l TilesetBrowser,a0
+	move.l IntuiBase,a6
+	jsr _LVOWindowToFront(a6)
+	move.l TilesetBrowser,a0
+	move.l IntuiBase,a6
+	jmp _LVOActivateWindow(a6)
 ****
 CloseSpriteEditors:
 	move.l d2,-(sp)
@@ -673,23 +721,35 @@ ProjNewWin:
 
 ******** Menu Text
 
-**** Sprites Menu Text
+**** Tilesets Menu Text
 
-SpritesStr:
-	dc.b "Sprites",0
+TilesetsStr:
+	dc.b "Tilesets",0
 
-NewSpriteStr:
-	dc.b "New Sprite...",0
+NewTilesetStr:
+	dc.b "New Tileset...",0
+
+OpenTilesetStr:
+	dc.b "Open Tileset...",0
 
 	EVEN
-NewSpriteTxt:
+NewTilesetTxt:
 	dc.b 0,0			; pens
 	dc.b 0				; draw mode (JAM1)
 	dc.b 0				; padding
 	dc.w 0,0			; left, top
 	dc.l 0				; default font
-	dc.l NewSpriteStr
+	dc.l NewTilesetStr
 	dc.l 0				; next
+
+OpenTilesetTxt:
+	dc.b 0,0
+	dc.b 0
+	dc.b 0
+	dc.w 0,0
+	dc.l 0
+	dc.l OpenTilesetStr
+	dc.l 0
 
 **** Proj Menu Text
 
@@ -806,38 +866,51 @@ ExitMenuItem:
 	dc.l 0				; sub-item
 	dc.w 0				; "next select"
 
-**** Sprites MenuItems
+**** Tilesets MenuItems
 
-NewSpriteMenuItem:
-	dc.l 0				; next item
-	dc.w 0,0			; left, top
-	dc.w 100			; width
-	dc.w 10				; height
+NewTilesetMenuItem:
+	dc.l OpenTilesetMenuItem	; next item
+	dc.w 0,0					; left, top
+	dc.w 130,10					; width
 	dc.w ITEMTEXT!ITEMENABLED!HIGHCOMP
-	dc.l 0				; mutual exclusion
-	dc.l NewSpriteTxt
-	dc.l 0				; no different highlighted text
-	dc.b 0				; no shortcut
-	dc.b 0				; padding
-	dc.l 0				; no subitems
-	dc.w 0				; next select
+	dc.l 0						; mutual exclusion
+	dc.l NewTilesetTxt
+	dc.l 0						; no different highlighted text
+	dc.b 0						; no shortcut
+	dc.b 0						; padding
+	dc.l 0						; no subitems
+	dc.w 0						; next select
+
+OpenTilesetMenuItem:
+	dc.l 0						; next item
+	dc.w 0,12					; left,top
+	dc.w 130,10					; width,height
+	dc.w ITEMTEXT!ITEMENABLED!HIGHCOMP
+	dc.l 0						; mutual exclusion
+	dc.l OpenTilesetTxt
+	dc.l 0
+	dc.b 0
+	dc.b 0
+	dc.l 0
+	dc.w 0
+	
 
 ******** Menus
 
 ; TODO: dynamically compute the sizes/positions of things
 
-SpritesMenu:
+TilesetsMenu:
 	dc.l 0						; next menu
 	dc.w 82,0					; left/top
-	dc.w 60						; width
+	dc.w 70						; width
 	dc.w 10						; height
 	dc.w MENUENABLED			; flags
-	dc.l SpritesStr				; text
-	dc.l NewSpriteMenuItem		; first item
+	dc.l TilesetsStr			; text
+	dc.l NewTilesetMenuItem		; first item
 	dc.w 0,0,0,0
 
 ProjMenu:
-	dc.l SpritesMenu		; next menu
+	dc.l TilesetsMenu		; next menu
 	dc.w 2,0				; left, top
 	dc.w 60					; width
 	dc.w 30					; height
@@ -849,17 +922,17 @@ ProjMenu:
 ******** Menu Handler Tables
 
 MenuHandlers:
-	dc.l ProjMenuHandlers,SpritesMenuHandlers
+	dc.l ProjMenuHandlers,TilesetsMenuHandlers
 
 ProjMenuHandlers:
 	dc.l NewItemHandler,SaveItemHandler,SaveAsItemHandler
 	dc.l QuitItemHandler
 
-SpritesMenuHandlers:
-	dc.l NewSpriteItemHandler
+TilesetsMenuHandlers:
+	dc.l NewTilesetItemHandler,OpenTilesetItemHandler
 
 ******** NewWindow info
 
 AllNewWins:
-	dc.l SprNewWin,ProjNewWin
-NUM_OF_NEWWINS	=2
+	dc.l SprNewWin,ProjNewWin,BrowserNewWin
+NUM_OF_NEWWINS	=3
