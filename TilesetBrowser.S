@@ -33,7 +33,7 @@ BrowserNewWin:
 	dc.b -1,-1										; default pens
 	dc.l CLOSEWINDOW!GADGETUP
 	dc.l WINDOWCLOSE!WINDOWDEPTH!WINDOWDRAG
-	dc.l TilesetListGadgets							; first gadget
+	dc.l ScrollUpGadget								; first gadget
 	dc.l 0											; default checkmark image
 	dc.l BrowserTitle								; title
 	dc.l 0											; PATCH screen ptr
@@ -95,11 +95,80 @@ TilesetListBottomBorder:
 	dc.l TilesetListBottomBorderPoints
 	dc.l 0
 
+ScrollUpStr:
+	dc.b '^',0
+
+ScrollDownStr:
+	dc.b 'v',0
+
+ScrollUpTxt:
+	dc.b 3,0										; pens
+	dc.b 0											; jam1
+	dc.b 0											; padding
+	dc.w 1,2										; left, top
+	dc.l 0											; default font
+	dc.l ScrollUpStr
+	dc.l 0											; next
+
+ScrollDownTxt:
+	dc.b 3,0
+	dc.b 0
+	dc.b 0
+	dc.w 0,1
+	dc.l 0
+	dc.l ScrollDownStr
+	dc.l 0
+
+ScrollButtonBorderPoints:
+	dc.w -1,-1
+	dc.w -1,12
+	dc.w 10,12
+	dc.w 10,-1
+	dc.w -1,-1
+
+ScrollButtonBorder:
+	dc.w -1,-1
+	dc.b 1,0
+	dc.b 0
+	dc.b 5
+	dc.l ScrollButtonBorderPoints
+	dc.l 0
+
+ScrollUpGadget:
+	dc.l ScrollDownGadget
+	dc.w 144,17
+	dc.w 10,12
+	dc.w GFLG_GADGHCOMP
+	dc.w GACT_IMMEDIATE
+	dc.w GTYP_BOOLGADGET
+	dc.l ScrollButtonBorder
+	dc.l 0
+	dc.l ScrollUpTxt
+	dc.l 0
+	dc.l 0
+	dc.w 8
+	dc.l 0
+
+ScrollDownGadget:
+	dc.l TilesetListGadgets
+	dc.w 144,100
+	dc.w 10,12
+	dc.w GFLG_GADGHCOMP
+	dc.w GACT_IMMEDIATE
+	dc.w GTYP_BOOLGADGET
+	dc.l ScrollButtonBorder
+	dc.l 0
+	dc.l ScrollDownTxt
+	dc.l 0
+	dc.l 0
+	dc.w 9
+	dc.l 0
+	
 TilesetListGadgets:
 .entry1:
 	dc.l *+gg_SIZEOF								; next
 	dc.w 8,16										; left, top
-	dc.w 144,11										; width, height
+	dc.w 134,11										; width, height
 	dc.w 0											; flags
 	dc.w GACT_IMMEDIATE!GACT_TOGGLESELECT
 	dc.w GTYP_BOOLGADGET
@@ -113,7 +182,7 @@ TilesetListGadgets:
 .entry2:
 	dc.l *+gg_SIZEOF								; next
 	dc.w 8,28										; left, top
-	dc.w 144,11										; width, height
+	dc.w 134,11										; width, height
 	dc.w 0											; flags
 	dc.w GACT_IMMEDIATE!GACT_TOGGLESELECT
 	dc.w GTYP_BOOLGADGET
@@ -127,7 +196,7 @@ TilesetListGadgets:
 .entry3:
 	dc.l *+gg_SIZEOF								; next
 	dc.w 8,40										; left, top
-	dc.w 144,11										; width, height
+	dc.w 134,11										; width, height
 	dc.w 0											; flags
 	dc.w GACT_IMMEDIATE!GACT_TOGGLESELECT
 	dc.w GTYP_BOOLGADGET
@@ -141,7 +210,7 @@ TilesetListGadgets:
 .entry4:
 	dc.l *+gg_SIZEOF								; next
 	dc.w 8,52										; left, top
-	dc.w 144,11										; width, height
+	dc.w 134,11										; width, height
 	dc.w 0											; flags
 	dc.w GACT_IMMEDIATE!GACT_TOGGLESELECT
 	dc.w GTYP_BOOLGADGET
@@ -155,7 +224,7 @@ TilesetListGadgets:
 .entry5:
 	dc.l *+gg_SIZEOF								; next
 	dc.w 8,64										; left, top
-	dc.w 144,11										; width, height
+	dc.w 134,11										; width, height
 	dc.w 0											; flags
 	dc.w GACT_IMMEDIATE!GACT_TOGGLESELECT
 	dc.w GTYP_BOOLGADGET
@@ -169,7 +238,7 @@ TilesetListGadgets:
 .entry6:
 	dc.l *+gg_SIZEOF								; next
 	dc.w 8,76										; left, top
-	dc.w 144,11										; width, height
+	dc.w 134,11										; width, height
 	dc.w 0											; flags
 	dc.w GACT_IMMEDIATE!GACT_TOGGLESELECT
 	dc.w GTYP_BOOLGADGET
@@ -183,7 +252,7 @@ TilesetListGadgets:
 .entry7:
 	dc.l *+gg_SIZEOF								; next
 	dc.w 8,88										; left, top
-	dc.w 144,11										; width, height
+	dc.w 134,11										; width, height
 	dc.w 0											; flags
 	dc.w GACT_IMMEDIATE!GACT_TOGGLESELECT
 	dc.w GTYP_BOOLGADGET
@@ -197,7 +266,7 @@ TilesetListGadgets:
 .entry8:
 	dc.l 0											; next
 	dc.w 8,100										; left, top
-	dc.w 144,11										; width, height
+	dc.w 134,11										; width, height
 	dc.w 0											; flags
 	dc.w GACT_IMMEDIATE!GACT_TOGGLESELECT
 	dc.w GTYP_BOOLGADGET
