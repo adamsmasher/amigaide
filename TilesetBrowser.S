@@ -18,6 +18,18 @@ CloseTilesetBrowser:
 	move.l IntuiBase,a6
 	jmp _LVOCloseWindow(a6)
  XDEF CloseTilesetBrowser
+****************
+* a0 - ptr to Tileset Browser
+* a1 - gadget clicked
+TilesetBrowserGadgetUp:
+	rts
+ XDEF TilesetBrowserGadgetUp
+****************
+* a0 - ptr to Tileset Browser
+* a1 - gadget clicked
+TilesetBrowserGadgetDown:
+	rts
+ XDEF TilesetBrowserGadgetDown
 
  SECTION TilesetBrowserData,DATA
 BrowserTitle:
@@ -31,7 +43,7 @@ BrowserNewWin:
 	dc.w 20,20										; left,top
 	dc.w BROWSER_WIDTH,BROWSER_HEIGHT				; width, height
 	dc.b -1,-1										; default pens
-	dc.l CLOSEWINDOW!GADGETUP
+	dc.l CLOSEWINDOW!GADGETUP!GADGETDOWN
 	dc.l WINDOWCLOSE!WINDOWDEPTH!WINDOWDRAG
 	dc.l ScrollUpGadget								; first gadget
 	dc.l 0											; default checkmark image

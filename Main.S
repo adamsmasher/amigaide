@@ -481,12 +481,32 @@ HandleBrowserMsgs:
 	bsr.s GetAckMsg
 	tst.l d0
 	beq.s .done
+	move.l d0,a0						; a0=Msg
+.dispatch
+	move.l im_Class(a0),d0
+	cmp.l #IDCMP_CLOSEWINDOW,d0
+	beq.s .closeWindow
+	cmp.l #IDCMP_GADGETUP,d0
+	beq.s .onGadgetUp
+	cmp.l #IDCMP_GADGETDOWN,d0
+	beq.s .onGadgetDown
+	bra.s .loop
 .closeWindow:
 	move.l TilesetBrowser,a0
 	bsr.w RemWinFromSigMask
 	move.l TilesetBrowser,a0
 	jsr CloseTilesetBrowser
 	clr.l TilesetBrowser
+	bra.s .loop
+.onGadgetUp:
+	move.l im_IAddress(a0),a1			; a1 = gadget clicked
+	move.l TilesetBrowser,a0
+	jsr TilesetBrowserGadgetUp
+	bra.s .loop
+.onGadgetDown:
+	move.l im_IAddress(a0),a1
+	move.l TilesetBrowser,a0
+	jsr TilesetBrowserGadgetDown
 	bra.s .loop
 .done:
 	move.l (sp)+,a2
