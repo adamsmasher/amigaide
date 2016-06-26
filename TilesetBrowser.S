@@ -120,11 +120,11 @@ ScrollDownTxt:
 	dc.l 0
 
 ScrollButtonBorderPoints:
-	dc.w -1,-1
-	dc.w -1,12
+	dc.w 0,0
+	dc.w 0,12
 	dc.w 10,12
-	dc.w 10,-1
-	dc.w -1,-1
+	dc.w 10,0
+	dc.w 0,0
 
 ScrollButtonBorder:
 	dc.w -1,-1
@@ -136,7 +136,7 @@ ScrollButtonBorder:
 
 ScrollUpGadget:
 	dc.l ScrollDownGadget
-	dc.w 144,17
+	dc.w 144,16					; left, top
 	dc.w 10,12
 	dc.w GFLG_GADGHCOMP
 	dc.w GACT_RELVERIFY
@@ -150,7 +150,7 @@ ScrollUpGadget:
 	dc.l 0
 
 ScrollDownGadget:
-	dc.l TilesetListGadgets
+	dc.l ScrollBarGadget
 	dc.w 144,100
 	dc.w 10,12
 	dc.w GFLG_GADGHCOMP
@@ -163,7 +163,44 @@ ScrollDownGadget:
 	dc.l 0
 	dc.w 9
 	dc.l 0
-	
+
+ScrollInfo:
+	dc.w AUTOKNOB!FREEVERT
+	dc.w 0,0						; HPot, VPot
+	dc.w MAXBODY,256				; HBody,VBody
+	dc.w 0,0						; width,height
+	dc.w 0,0						; HPosRes,VPosRes
+	dc.w 0,0						; leftborder,topborder
+
+ScrollBarBorderPoints:
+	dc.w -1,-1
+	dc.w 12,-1
+	dc.w 12,15
+	dc.w -1,15
+	dc.w -1,-1
+
+ScrollBarBorder:
+	dc.l 0,0						; left,top
+	dc.b 3,0						; front,back pen
+	dc.b 0							; jam1
+	dc.b 0							; number of points
+	dc.l ScrollBarBorderPoints		; points
+	dc.l 0							; next border
+
+ScrollBarGadget:
+	dc.l TilesetListGadgets			; next
+	dc.w 143,27						; left,top
+	dc.w 11,73						; width,height
+	dc.w 0							; flags
+	dc.w 0							; activation
+	dc.w GTYP_PROPGADGET			; type
+	dc.l ScrollBarBorder			; border
+	dc.l 0							; highlight border
+	dc.l 0							; text
+	dc.l 0							; deprecated
+	dc.l ScrollInfo
+	dc.w 10
+	dc.l 0
 TilesetListGadgets:
 .entry1:
 	dc.l *+gg_SIZEOF								; next
