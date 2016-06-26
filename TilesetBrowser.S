@@ -139,7 +139,7 @@ ScrollUpGadget:
 	dc.w 144,17
 	dc.w 10,12
 	dc.w GFLG_GADGHCOMP
-	dc.w GACT_IMMEDIATE
+	dc.w GACT_RELVERIFY
 	dc.w GTYP_BOOLGADGET
 	dc.l ScrollButtonBorder
 	dc.l 0
@@ -154,7 +154,7 @@ ScrollDownGadget:
 	dc.w 144,100
 	dc.w 10,12
 	dc.w GFLG_GADGHCOMP
-	dc.w GACT_IMMEDIATE
+	dc.w GACT_RELVERIFY
 	dc.w GTYP_BOOLGADGET
 	dc.l ScrollButtonBorder
 	dc.l 0
