@@ -19,21 +19,88 @@ CloseTilesetBrowser:
 	jmp _LVOCloseWindow(a6)
  XDEF CloseTilesetBrowser
 ****************
+* a1 - ptr to window
+ScrollUp:
+	movem.l d2-d4/a2,-(sp)
+	lea.l ScrollInfo,a0
+	move.w pi_VertPot(a0),d2
+	cmp.w #4096,d2
+	bcs.s .zero
+	sub.w #4096,d2
+	bra.s .doScroll
+.zero:
+	clr.w d2
+.doScroll:
+	lea.l ScrollBarGadget,a0
+	move.l #0,a2						; a2 = No requester
+	move.w #AUTOKNOB!FREEVERT,d0		; d0 = flags
+	clr.w d1							; d1 = horizontal pot
+	move.w #MAXBODY,d3					; d3 = horizbody
+	move.w #4096,d4						; d4 = vertbody
+	move.l IntuiBase,a6
+	jsr _LVOModifyProp(a6)
+.done:
+	movem.l (sp)+,d2-d4/a2
+	rts
+****************
+* a1 - ptr to window
+ScrollDown:
+	movem.l d2-d4/a2,-(sp)
+	lea.l ScrollInfo,a0
+	move.w pi_VertPot(a0),d2
+	cmp.w #(65536-4096),d2
+	bcc.s .max
+	add.w #4096,d2
+	bra.s .doScroll
+.max:
+	move.w #$FFFF,d2
+.doScroll:
+	lea.l ScrollBarGadget,a0
+	move.l #0,a2						; a2 = No requester
+	move.w #AUTOKNOB!FREEVERT,d0		; d0 = flags
+	clr.w d1							; d1 = horizontal pot
+	move.w #MAXBODY,d3					; d3 = horizbody
+	move.w #4096,d4						; d4 = vertbody
+	move.l IntuiBase,a6
+	jsr _LVOModifyProp(a6)
+.done:
+	movem.l (sp)+,d2-d4/a2
+	rts
+****************
 * a0 - ptr to Tileset Browser
 * a1 - gadget clicked
 TilesetBrowserGadgetUp:
+.dispatch
+	move.w gg_GadgetID(a1),d0
+	cmp.w #SCROLL_UP_ID,d0
+	beq.s .scrollUp
+	cmp.w #SCROLL_DOWN_ID,d0
+	beq.s .scrollDown
+	bra.s .done
+.scrollUp:
+	move.l a0,a1
+	jsr ScrollUp
+	bra.s .done
+.scrollDown:
+	move.l a0,a1
+	jsr ScrollDown
+.done:
 	rts
  XDEF TilesetBrowserGadgetUp
 ****************
 * a0 - ptr to Tileset Browser
 * a1 - gadget clicked
 TilesetBrowserGadgetDown:
+	move.w gg_GadgetID(a1),d0
 	rts
  XDEF TilesetBrowserGadgetDown
 
  SECTION TilesetBrowserData,DATA
 BrowserTitle:
     dc.b "Tileset Browser",0
+
+SCROLL_UP_ID	=8
+SCROLL_DOWN_ID	=9
 
 BROWSER_WIDTH	=160
 BROWSER_HEIGHT	=192
@@ -158,7 +225,7 @@ ScrollUpGadget:
 	dc.l ScrollUpTxt
 	dc.l 0
 	dc.l 0
-	dc.w 8
+	dc.w SCROLL_UP_ID
 	dc.l 0
 
 ScrollDownGadget:
@@ -173,13 +240,13 @@ ScrollDownGadget:
 	dc.l ScrollDownTxt
 	dc.l 0
 	dc.l 0
-	dc.w 9
+	dc.w SCROLL_DOWN_ID
 	dc.l 0
 
 ScrollInfo:
 	dc.w AUTOKNOB!FREEVERT
 	dc.w 0,0						; HPot, VPot
-	dc.w MAXBODY,256				; HBody,VBody
+	dc.w MAXBODY,4096				; HBody,VBody
 	dc.w 0,0						; width,height
 	dc.w 0,0						; HPosRes,VPosRes
 	dc.w 0,0						; leftborder,topborder
