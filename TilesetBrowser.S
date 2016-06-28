@@ -101,9 +101,13 @@ BrowserTitle:
 
 SCROLL_UP_ID	=8
 SCROLL_DOWN_ID	=9
+OPEN_TILESET_ID	=10
 
 BROWSER_WIDTH	=160
 BROWSER_HEIGHT	=192
+
+OPEN_TILESET_BUTTON_WIDTH	=145
+OPEN_TILESET_BUTTON_HEIGHT	=16
 
 	EVEN 
 BrowserNewWin:
@@ -180,6 +184,9 @@ ScrollUpStr:
 ScrollDownStr:
 	dc.b 'v',0
 
+OpenTilesetStr:
+	dc.b 'Open Tileset',0
+
 ScrollUpTxt:
 	dc.b 3,0										; pens
 	dc.b 0											; jam1
@@ -198,6 +205,15 @@ ScrollDownTxt:
 	dc.l ScrollDownStr
 	dc.l 0
 
+OpenTilesetText:
+	dc.b 3,0
+	dc.b 0
+	dc.b 0
+	dc.w 25,4
+	dc.l 0
+	dc.l OpenTilesetStr
+	dc.l 0
+
 ScrollButtonBorderPoints:
 	dc.w 0,0
 	dc.w 0,12
@@ -211,6 +227,21 @@ ScrollButtonBorder:
 	dc.b 0
 	dc.b 5
 	dc.l ScrollButtonBorderPoints
+	dc.l 0
+
+OpenTilesetBorderPoints:
+	dc.w 0,0
+	dc.w OPEN_TILESET_BUTTON_WIDTH+1,0
+	dc.w OPEN_TILESET_BUTTON_WIDTH+1,OPEN_TILESET_BUTTON_HEIGHT+1
+	dc.w 0,OPEN_TILESET_BUTTON_HEIGHT+1
+	dc.w 0,0
+
+OpenTilesetBorder:
+	dc.w -1,-1
+	dc.b 1,0
+	dc.b 0
+	dc.b 5
+	dc.l OpenTilesetBorderPoints
 	dc.l 0
 
 ScrollUpGadget:
@@ -380,7 +411,7 @@ TilesetListGadgets:
 	dc.w 6											; ID
 	dc.l 0											; extra data
 .entry8:
-	dc.l 0											; next
+	dc.l OpenTilesetGadget							; next
 	dc.w 8,100										; left, top
 	dc.w 134,11										; width, height
 	dc.w 0											; flags
@@ -392,6 +423,21 @@ TilesetListGadgets:
 	dc.l 0
 	dc.l 0
 	dc.w 7
+	dc.l 0
+
+OpenTilesetGadget:
+	dc.l 0											; next
+	dc.w 8,116										; left,top
+	dc.w OPEN_TILESET_BUTTON_WIDTH,OPEN_TILESET_BUTTON_HEIGHT
+	dc.w GFLG_GADGHCOMP
+	dc.w GACT_RELVERIFY
+	dc.w GTYP_BOOLGADGET
+	dc.l OpenTilesetBorder
+	dc.l 0
+	dc.l OpenTilesetText
+	dc.l 0
+	dc.l 0
+	dc.w OPEN_TILESET_ID
 	dc.l 0
 
 TestStr:
