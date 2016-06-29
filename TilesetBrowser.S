@@ -107,19 +107,22 @@ TilesetBrowserGadgetUp:
 ****************
 * a0 - ptr to Tileset Browser
 RemoveAllTilesetGadgets:
+	move.l TilesetBrowser_Window(a0),a0
 	lea.l TilesetListGadgets,a1
 	moveq.l #8,d0
 	move.l IntuiBase,a6
 	jmp _LVORemoveGList(a6)
 ****************
-* a1 - ptr to Tileset Browser
+* a0 - ptr to Tileset Browser
 RefreshAllTilesetGadgets:
+	move.l TilesetBrowser_Window(a0),a1
 	lea.l TilesetListGadgets,a0
 	move.l #0,a2					; no requester
 	moveq.l #8,d0
 	move.l IntuiBase,a6
 	jmp _LVORefreshGList(a6)
 ****************
+* a0 - ptr to TilesetBrowser
 * d0 - tileset widget to select
 SelectTileset:
 	lea.l TilesetListGadgets,a0
@@ -137,15 +140,16 @@ SelectTileset:
 	dbra d1,.loop
 	rts
 ****************
-* a1 - ptr to TilesetBrowser
+* a0 - ptr to TilesetBrowser
 ClearTilesetListRect:
 	movem.l d2-d3,-(sp)
-	move.l wd_RPort(a1),-(sp)
+	move.l TilesetBrowser_Window(a0),a0
+	move.l wd_RPort(a0),-(sp)
 	move.l (sp),a1					; a1 = rport
 	moveq.b #0,d0
 	move.l GfxBase,a6
 	jsr _LVOSetAPen(a6)
-	move.l (sp),a1
+	move.l (sp),a1					; a1 = rport
 	move.b #RP_JAM1,d0
 	move.l GfxBase,a6
 	jsr _LVOSetDrMd(a6)
@@ -161,6 +165,7 @@ ClearTilesetListRect:
 ****************
 * a0 - ptr to TilesetBrowser
 AddAllTilesetGadgets:
+	move.l TilesetBrowser_Window(a0),a0
 	lea.l TilesetListGadgets,a1
 	moveq.w #0,d0						; add gadgets to the front
 	moveq.l #8,d1						; 8 total gadgets
@@ -172,8 +177,6 @@ AddAllTilesetGadgets:
 * a0 - ptr to Tileset Browser
 * a1 - gadget clicked
 TilesetBrowserGadgetDown:
-	; TODO: no
-	move.l TilesetBrowser_Window(a0),a0
 ; TODO: optimize - only redraw relevant widgets
 ; TODO: optimize - don't redraw if you're clicking on the already selected
 	move.l a0,-(sp)
@@ -181,11 +184,11 @@ TilesetBrowserGadgetDown:
 	bsr.w RemoveAllTilesetGadgets
 	move.w (sp)+,d0						; d0 = gadget selected
 	bsr.w SelectTileset
-	move.l (sp),a1						; a1 = tileset browser
+	move.l (sp),a0						; a0 = tileset browser
 	bsr.s ClearTilesetListRect
 	move.l (sp),a0						; a0 = tileset browser
 	bsr.s AddAllTilesetGadgets
-	move.l (sp)+,a1						; a1 = tileset browser
+	move.l (sp)+,a0						; a0 = tileset browser
 	bsr.w RefreshAllTilesetGadgets
 	rts
  XDEF TilesetBrowserGadgetDown
