@@ -36,11 +36,11 @@ CloseTilesetBrowser:
 	rts
  XDEF CloseTilesetBrowser
 ****************
-* a1 - ptr to window
+* a0 - ptr to TilesetBrowser
 ScrollUp:
 	movem.l d2-d4/a2,-(sp)
-	lea.l ScrollInfo,a0
-	move.w pi_VertPot(a0),d2
+	lea.l ScrollInfo,a1
+	move.w pi_VertPot(a1),d2
 	cmp.w #4096,d2
 	bcs.s .zero
 	sub.w #4096,d2
@@ -48,6 +48,7 @@ ScrollUp:
 .zero:
 	clr.w d2
 .doScroll:
+	move.l TilesetBrowser_Window(a0),a1
 	lea.l ScrollBarGadget,a0
 	move.l #0,a2						; a2 = No requester
 	move.w #AUTOKNOB!FREEVERT,d0		; d0 = flags
@@ -60,11 +61,11 @@ ScrollUp:
 	movem.l (sp)+,d2-d4/a2
 	rts
 ****************
-* a1 - ptr to window
+* a0 - ptr to TilesetBrowser
 ScrollDown:
 	movem.l d2-d4/a2,-(sp)
-	lea.l ScrollInfo,a0
-	move.w pi_VertPot(a0),d2
+	lea.l ScrollInfo,a1
+	move.w pi_VertPot(a1),d2
 	cmp.w #(65536-4096),d2
 	bcc.s .max
 	add.w #4096,d2
@@ -72,6 +73,7 @@ ScrollDown:
 .max:
 	move.w #$FFFF,d2
 .doScroll:
+	move.l TilesetBrowser_Window(a0),a1
 	lea.l ScrollBarGadget,a0
 	move.l #0,a2						; a2 = No requester
 	move.w #AUTOKNOB!FREEVERT,d0		; d0 = flags
@@ -87,9 +89,7 @@ ScrollDown:
 * a0 - ptr to Tileset Browser
 * a1 - gadget clicked
 TilesetBrowserGadgetUp:
-	; TODO: no
-	move.l TilesetBrowser_Window(a0),a0
-.dispatch
+.dispatch:
 	move.w gg_GadgetID(a1),d0
 	cmp.w #SCROLL_UP_ID,d0
 	beq.s .scrollUp
@@ -97,12 +97,10 @@ TilesetBrowserGadgetUp:
 	beq.s .scrollDown
 	bra.s .done
 .scrollUp:
-	move.l a0,a1
-	jsr ScrollUp
+	bsr.w ScrollUp
 	bra.s .done
 .scrollDown:
-	move.l a0,a1
-	jsr ScrollDown
+	bsr.s ScrollDown
 .done:
 	rts
  XDEF TilesetBrowserGadgetUp
