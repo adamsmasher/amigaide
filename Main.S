@@ -13,6 +13,7 @@
 	INCLUDE "Project.i"
 	INCLUDE "SpriteEditor.i"
 	INCLUDE "SpriteEditor_intf.i"
+	INCLUDE "TilesetBrowser.i"
 	INCLUDE "TilesetBrowser_intf.i"
 
 	jmp Start
@@ -22,7 +23,7 @@ ScrP:			ds.l 1
 ProjWinP:		ds.l 1
 SignalMask:		ds.l 1
 FirstSprEditor:	ds.l 1
-TilesetBrowser:	ds.l 1
+TilesetBrowser:	ds.l TILESETBROWSER_SIZEOF
 BorderTop:		ds.w 1
 BorderLeft:		ds.b 1
 BorderRight:	ds.b 1
@@ -409,7 +410,7 @@ ChkForProjMsgs:
 ****
 * d0 - bitmask of signals that occurred
 ChkForBrowserMsgs:
-	move.l TilesetBrowser,a0
+	move.l TilesetBrowser+TilesetBrowser_Window,a0
 	bsr.s ChkForWinMsgs
 	beq.s .done
 	bsr.s HandleBrowserMsgs
@@ -474,7 +475,7 @@ HandleProjMsgs:
 ****
 HandleBrowserMsgs:
 	move.l a2,-(sp)
-	move.l TilesetBrowser,a2
+	move.l TilesetBrowser+TilesetBrowser_Window,a2
 	move.l wd_UserPort(a2),a2
 .loop:
 	move.l a2,a0
@@ -492,20 +493,19 @@ HandleBrowserMsgs:
 	beq.s .onGadgetDown
 	bra.s .loop
 .closeWindow:
-	move.l TilesetBrowser,a0
+	move.l TilesetBrowser+TilesetBrowser_Window,a0
 	bsr.w RemWinFromSigMask
-	move.l TilesetBrowser,a0
+	lea.l TilesetBrowser,a0
 	jsr CloseTilesetBrowser
-	clr.l TilesetBrowser
 	bra.s .loop
 .onGadgetUp:
 	move.l im_IAddress(a0),a1			; a1 = gadget clicked
-	move.l TilesetBrowser,a0
+	lea.l TilesetBrowser,a0
 	jsr TilesetBrowserGadgetUp
 	bra.s .loop
 .onGadgetDown:
 	move.l im_IAddress(a0),a1
-	move.l TilesetBrowser,a0
+	lea.l TilesetBrowser,a0
 	jsr TilesetBrowserGadgetDown
 	bra.s .loop
 .done:
@@ -646,17 +646,17 @@ NewTilesetItemHandler:
 	rts
 ****
 OpenTilesetItemHandler:
-	tst.l TilesetBrowser
+	tst.l TilesetBrowser+TilesetBrowser_Window
 	bne.s .activate
+	lea.l TilesetBrowser,a0
 	jsr NewTilesetBrowser
-	move.l d0,TilesetBrowser
-	move.l d0,a0
+	move.l TilesetBrowser+TilesetBrowser_Window,a0
 	bra.w AddWinToSigMask
 .activate:
-	move.l TilesetBrowser,a0
+	move.l TilesetBrowser+TilesetBrowser_Window,a0
 	move.l IntuiBase,a6
 	jsr _LVOWindowToFront(a6)
-	move.l TilesetBrowser,a0
+	move.l TilesetBrowser+TilesetBrowser_Window,a0
 	move.l IntuiBase,a6
 	jmp _LVOActivateWindow(a6)
 ****

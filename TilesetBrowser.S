@@ -4,22 +4,36 @@
  INCLUDE "intuition/intuition.i"
  INCLUDE "intuition/intuition_lib.i"
  
+ INCLUDE "TilesetBrowser.i"
+ 
  INCLUDE "globals.i"
  INCLUDE "Project.i"
 
  SECTION TilesetBrowser,CODE
 ****
-* returns in d0 pointer to the new Tileset Browser (window, for now TODO)
+* a0 - ptr to where to initialize new tileset browser
 NewTilesetBrowser:
+	move.l a0,-(sp)
 	lea.l BrowserNewWin,a0
 	move.l IntuiBase,a6
-	jmp _LVOOpenWindow(a6)
+	jsr _LVOOpenWindow(a6)
+	move.l (sp)+,a0							; a0 = tileset browser
+	move.l d0,TilesetBrowser_Window(a0)
+	move.w #-1,TilesetBrowser_Selected(a0)
+	rts
+	
  XDEF NewTilesetBrowser
 ****************
-* a0 - ptr to Tileset Browser (window, for now TODO)
+* a0 - ptr to Tileset Browser
 CloseTilesetBrowser:
+	move.l a0,-(sp)
+	move.l TilesetBrowser_Window(a0),a0
 	move.l IntuiBase,a6
-	jmp _LVOCloseWindow(a6)
+	jsr _LVOCloseWindow(a6)
+	move.l (sp)+,a0
+	clr.l TilesetBrowser_Window(a0)
+	move.w #-1,TilesetBrowser_Selected(a0)
+	rts
  XDEF CloseTilesetBrowser
 ****************
 * a1 - ptr to window
@@ -73,6 +87,8 @@ ScrollDown:
 * a0 - ptr to Tileset Browser
 * a1 - gadget clicked
 TilesetBrowserGadgetUp:
+	; TODO: no
+	move.l TilesetBrowser_Window(a0),a0
 .dispatch
 	move.w gg_GadgetID(a1),d0
 	cmp.w #SCROLL_UP_ID,d0
@@ -158,6 +174,8 @@ AddAllTilesetGadgets:
 * a0 - ptr to Tileset Browser
 * a1 - gadget clicked
 TilesetBrowserGadgetDown:
+	; TODO: no
+	move.l TilesetBrowser_Window(a0),a0
 ; TODO: optimize - only redraw relevant widgets
 ; TODO: optimize - don't redraw if you're clicking on the already selected
 	move.l a0,-(sp)
