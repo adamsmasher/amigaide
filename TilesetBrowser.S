@@ -15,6 +15,7 @@
 * a0 - ptr to where to initialize new tileset browser
 NewTilesetBrowser:
 	move.l a0,-(sp)
+	bsr.s InitTilesetGadgets
 	lea.l BrowserNewWin,a0
 	move.l IntuiBase,a6
 	jsr _LVOOpenWindow(a6)
@@ -24,6 +25,41 @@ NewTilesetBrowser:
 	rts
 	
  XDEF NewTilesetBrowser
+****************
+InitTilesetGadgets:
+	bsr.s InitEnabledGadgets
+; a0 = first empty
+; d0 = num disabled (-1)
+	tst.w d0
+	beq.s .done
+	bsr.s InitDisabledGadgets
+.done:
+	rts
+*****************
+* returns in a0 the first empty gadget
+* returns in d0 the number disabled
+InitEnabledGadgets:
+	lea.l TilesetListGadgets,a0
+	moveq.w #8-1,d0
+	move.b Project+Project_TilesetCnt,d1
+	bra.s .test
+.loop:
+	move.l gg_NextGadget(a0),a0
+	subq.b #1,d1
+.test:
+	tst.b d1								; zero left total?
+	dbeq d0,.loop
+	rts
+****************
+* a0 - first disabled gadget
+* d0 - number to disable
+InitDisabledGadgets:
+.loop:
+	move.l #NoTilesetText,gg_GadgetText(a0)
+	or.w #GFLG_DISABLED,gg_Flags(a0)
+	move.l gg_NextGadget(a0),a0
+	dbra d0,.loop
+	rts
 ****************
 * a0 - TilesetBrowser
 DeselectSelectedGadget:
@@ -720,3 +756,15 @@ TilesetListTexts:
 	dc.l 0											; default font
 	dc.l Project+Project_TilesetNames+16*7
 	dc.l 0
+
+NoTilesetText:
+	dc.b 2,0
+	dc.b 0
+	dc.b 0
+	dc.b 0,1
+	dc.l 0
+	dc.l NoTilesetStr
+	dc.l 0
+
+NoTilesetStr:
+	dc.b '<no tileset>',0
