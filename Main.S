@@ -625,12 +625,11 @@ QuitItemHandler:
 	move.b #1,QuitFlag
 	rts
 ****
-NewTilesetItemHandler:
-	move.b Project+Project_TilesetCnt,d0
+* d0 - tileset to spawn for
+SpawnTilesetEditor:
 	jsr NewSpriteEditor
 	tst.l d0
 	beq.s .done
-	addq.b #1,Project+Project_TilesetCnt
 .install:
 	move.l d0,a0								; a0 = new
 	move.l FirstSprEditor,SpriteEditor_Next(a0)
@@ -643,6 +642,15 @@ NewTilesetItemHandler:
 	move.l SpriteEditor_Window(a0),a0
 	bsr.w AddWinToSigMask
 .done:
+	rts
+
+ XDEF SpawnTilesetEditor
+****
+NewTilesetItemHandler:
+	move.b Project+Project_TilesetCnt,d0
+	bsr.s SpawnTilesetEditor
+; TODO: add a test to make sure this succeeded before doing this
+	addq.b #1,Project+Project_TilesetCnt
 	rts
 ****
 OpenTilesetItemHandler:

@@ -7,6 +7,7 @@
  INCLUDE "TilesetBrowser.i"
  
  INCLUDE "globals.i"
+ INCLUDE "Main_intf.i"
  INCLUDE "Project.i"
 
  SECTION TilesetBrowser,CODE
@@ -101,6 +102,15 @@ ScrollDown:
 	rts
 ****************
 * a0 - ptr to Tileset Browser
+OpenTileset:
+	move.w TilesetBrowser_Selected(a0),d0
+	cmp #-1,d0
+	beq .done
+	jsr SpawnTilesetEditor
+.done:
+	rts
+****************
+* a0 - ptr to Tileset Browser
 * a1 - gadget clicked
 TilesetBrowserGadgetUp:
 .dispatch:
@@ -109,12 +119,17 @@ TilesetBrowserGadgetUp:
 	beq.s .scrollUp
 	cmp.w #SCROLL_DOWN_ID,d0
 	beq.s .scrollDown
+	cmp.w #OPEN_TILESET_ID,d0
+	beq.s .openTileset
 	bra.s .done
 .scrollUp:
 	bsr.w ScrollUp
 	bra.s .done
 .scrollDown:
 	bsr.s ScrollDown
+	bra.s .done
+.openTileset:
+	bsr.s OpenTileset
 .done:
 	rts
  XDEF TilesetBrowserGadgetUp
