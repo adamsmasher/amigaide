@@ -624,7 +624,7 @@ TilesetListGadgets:
 .entry8:
 	dc.l 0											; next
 	dc.w 8,100										; left, top
-	dc.w 135,11										; width, height
+	dc.w 135,12										; width, height
 	dc.w 0											; flags
 	dc.w GACT_IMMEDIATE
 	dc.w GTYP_BOOLGADGET
