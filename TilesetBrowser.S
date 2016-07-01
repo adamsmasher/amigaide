@@ -44,6 +44,7 @@ InitEnabledGadgets:
 	move.b Project+Project_TilesetCnt,d1
 	bra.s .test
 .loop:
+	and.w #(~GFLG_DISABLED),gg_Flags(a0)
 	move.l gg_NextGadget(a0),a0
 	subq.b #1,d1
 .test:
