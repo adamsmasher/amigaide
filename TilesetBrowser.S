@@ -15,6 +15,7 @@
 * a0 - ptr to where to initialize new tileset browser
 NewTilesetBrowser:
 	move.l a0,-(sp)
+	clr.w d0
 	bsr.s InitTilesetGadgets
 	lea.l BrowserNewWin,a0
 	move.l IntuiBase,a6
@@ -22,10 +23,12 @@ NewTilesetBrowser:
 	move.l (sp)+,a0							; a0 = tileset browser
 	move.l d0,TilesetBrowser_Window(a0)
 	move.w #-1,TilesetBrowser_Selected(a0)
+	clr.w TilesetBrowser_FirstShown(a0)
 	rts
 	
  XDEF NewTilesetBrowser
 ****************
+* d0 - first tileset displayed
 InitTilesetGadgets:
 	bsr.s InitEnabledGadgets
 ; a0 = first empty
@@ -36,20 +39,37 @@ InitTilesetGadgets:
 .done:
 	rts
 *****************
+* d0 - first tileset displayed
 * returns in a0 the first empty gadget
 * returns in d0 the number disabled
 InitEnabledGadgets:
+	move.l a2,-(sp)
 	lea.l TilesetListGadgets,a0
-	moveq.w #8-1,d0
+	lea.l TilesetListTexts,a1
+; a2 = tileset name base
+	lea.l Project+Project_TilesetNames,a2
+	move.w d0,d1							; d1 = first tileset displayed
+	lsl.w #4,d1								; d1 = byte offset
+	lea.l (a2,d1),a2						; a2 = first name displayed	
+; set d1 to be the number of tilesets (total) after the last currently
+; initialized tileset (of the ones we're going to display)
 	move.b Project+Project_TilesetCnt,d1
+	sub.b d0,d1
+	moveq.w #8-1,d0							; d0 - # of gadgets left
 	bra.s .test
 .loop:
 	and.w #(~GFLG_DISABLED),gg_Flags(a0)
+	move.l a2,it_IText(a1)
+	move.l a1,gg_GadgetText(a0)
+.next:
 	move.l gg_NextGadget(a0),a0
+	lea.l it_SIZEOF(a1),a1					; a1 = next text
+	lea.l 16(a2),a2							; a2 = next title
 	subq.b #1,d1
 .test:
 	tst.b d1								; zero left total?
-	dbeq d0,.loop
+	dble d0,.loop
+	move.l (sp)+,a2
 	rts
 ****************
 * a0 - first disabled gadget
@@ -94,6 +114,9 @@ UpdateListGadgets:
 	bsr.s RemoveAllListGadgets
 	move.l (sp),a0
 	bsr.s ClearListArea
+	move.l (sp),a0
+	move.w TilesetBrowser_FirstShown(a0),d0
+	bsr.w InitTilesetGadgets
 	move.l (sp),a0
 	bsr.s AddAllListGadgets
 	move.l (sp)+,a0
@@ -162,29 +185,50 @@ RefreshAllListGadgets:
 	move.l (sp)+,a2
 	rts
 ****************
+* d0 - new scroll value
 * a0 - ptr to TilesetBrowser
 UpdateScroll:
+	move.w d0,-(sp)
 	move.l a0,-(sp)
+	move.w TilesetBrowser_FirstShown(a0),-(sp)
+	bsr.w UpdateFirstShown
+	move.w (sp)+,d0								; d0 = old first shown
+	cmp.w TilesetBrowser_FirstShown(a0),d0
+	beq.s .updateScrollGadget					; don't redraw if no change
+	move.l (sp),a0	
 	bsr.w UpdateListGadgets
+.updateScrollGadget:
 	move.l (sp)+,a0
+	move.w (sp)+,d0
 	bra.s UpdateScrollGadget
+****************
+* d0 - new pot value
+* a0 - TilesetBrowser
+UpdateFirstShown:
+; divide by 4096
+	lsr.w #8,d0
+	lsr.w #4,d0
+	move.w d0,TilesetBrowser_FirstShown(a0)
+	rts
 ****************
 * a0 - ptr to TilesetBrowser
 ScrollUp:
 	lea.l ScrollInfo,a1
-	move.w pi_VertPot(a1),d2
-	cmp.w #4096,d2
+	move.w pi_VertPot(a1),d0
+	cmp.w #4096,d0
 	bcs.s .zero
-	sub.w #4096,d2
+	sub.w #4096,d0
 	bra.s .doScroll
 .zero:
-	clr.w d2
+	clr.w d0
 .doScroll:
-	bra.s UpdateScroll
+	bra.w UpdateScroll
 ****************
 * a0 - ptr to TilesetBrowser
+* d0 - new pot value
 UpdateScrollGadget:
 	movem.l d2-d4/a2,-(sp)
+	move.w d0,d2						; d2 = new pot value
 	move.l TilesetBrowser_Window(a0),a1
 	lea.l ScrollBarGadget,a0
 	move.l #0,a2						; a2 = No requester
@@ -200,15 +244,15 @@ UpdateScrollGadget:
 * a0 - ptr to TilesetBrowser
 ScrollDown:
 	lea.l ScrollInfo,a1
-	move.w pi_VertPot(a1),d2
-	cmp.w #(65536-4096),d2
+	move.w pi_VertPot(a1),d0
+	cmp.w #(65536-4096),d0
 	bcc.s .max
-	add.w #4096,d2
+	add.w #4096,d0
 	bra.s .doScroll
 .max:
-	move.w #$FFFF,d2
+	move.w #$FFFF,d0
 .doScroll:
-	bra.s UpdateScroll
+	bra.w UpdateScroll
 ****************
 * a0 - ptr to Tileset Browser
 OpenTileset:
@@ -827,7 +871,7 @@ NoTilesetText:
 	dc.b 2,0
 	dc.b 0
 	dc.b 0
-	dc.b 0,1
+	dc.w 0,1
 	dc.l 0
 	dc.l NoTilesetStr
 	dc.l 0
