@@ -89,8 +89,88 @@ CloseTilesetBrowser:
  XDEF CloseTilesetBrowser
 ****************
 * a0 - ptr to TilesetBrowser
+UpdateListGadgets:
+	move.l a0,-(sp)
+	bsr.s RemoveAllListGadgets
+	move.l (sp),a0
+	bsr.s ClearListArea
+	move.l (sp),a0
+	bsr.s AddAllListGadgets
+	move.l (sp)+,a0
+	bsr.w RefreshAllListGadgets
+	rts
+****************
+* a1 - rport
+InitRPortClear:
+	move.l a1,-(sp)
+	moveq.b #0,d0							; d0 = white
+	move.l GfxBase,a6
+	jsr _LVOSetAPen(a6)
+	move.l (sp)+,a1							; a1 = rport
+	move.b #RP_JAM1,d0
+	move.l GfxBase,a6
+	jmp _LVOSetDrMd(a6)
+****************
+* a0 - ptr to TilesetBrowser
+ClearListArea:
+	movem.l d2-d3,-(sp)
+	move.l TilesetBrowser_Window(a0),a0
+	move.l wd_RPort(a0),-(sp)
+	move.l (sp),a1							; a1 = rport
+	bsr.s InitRPortClear
+	move.l (sp)+,a1							; a1 = rport
+	move.w #8,d0							; d0 = left
+	move.w #142,d2							; d2 = right
+	move.w #16,d1							; d1 = top
+; TODO: fixme
+	move.w #100,d3							; d3 = bottom
+	move.l GfxBase,a6
+	jsr _LVORectFill(a6)
+	movem.l (sp)+,d2-d3
+	rts
+****************
+* a0 - ptr to TilesetBrowser
+RemoveAllListGadgets:
+	move.l TilesetBrowser_Window(a0),a0
+	lea.l TilesetListGadgets,a1
+	move.w #8,d0
+	move.l IntuiBase,a6
+	jmp _LVORemoveGList(a6)
+****************
+* a0 - ptr to TilesetBrowser
+AddAllListGadgets:
+	move.l a2,-(sp)
+	move.l TilesetBrowser_Window(a0),a0
+	lea.l TilesetListGadgets,a1
+	move.l #0,a2							; no requester
+	move.w #-1,d0							; d0 = end of list
+	move.w #8,d1							; d1 = eight gadgets
+	move.l IntuiBase,a6
+	jsr _LVOAddGList(a6)
+	move.l (sp)+,a2
+	rts
+****************
+* a0 - ptr to TilesetBrowser
+RefreshAllListGadgets:
+	move.l a2,-(sp)
+	move.l TilesetBrowser_Window(a0),a1
+	lea.l TilesetListGadgets,a0
+	move.l #0,a2							; no requester
+	move.w #8,d0							; eight gadgets
+	move.l IntuiBase,a6
+	jsr _LVORefreshGList(a6)
+	move.l (sp)+,a2
+	rts
+****************
+* a0 - ptr to TilesetBrowser
+UpdateScroll:
+	move.l a0,-(sp)
+	bsr.w UpdateListGadgets
+	move.l (sp)+,a0
+	bra.s UpdateScrollGadget
+****************
+* a0 - ptr to TilesetBrowser
 ScrollUp:
-	movem.l d2-d4/a2,-(sp)
 	lea.l ScrollInfo,a1
 	move.w pi_VertPot(a1),d2
 	cmp.w #4096,d2
@@ -100,6 +180,11 @@ ScrollUp:
 .zero:
 	clr.w d2
 .doScroll:
+	bra.s UpdateScroll
+****************
+* a0 - ptr to TilesetBrowser
+UpdateScrollGadget:
+	movem.l d2-d4/a2,-(sp)
 	move.l TilesetBrowser_Window(a0),a1
 	lea.l ScrollBarGadget,a0
 	move.l #0,a2						; a2 = No requester
@@ -109,13 +194,11 @@ ScrollUp:
 	move.w #4096,d4						; d4 = vertbody
 	move.l IntuiBase,a6
 	jsr _LVOModifyProp(a6)
-.done:
 	movem.l (sp)+,d2-d4/a2
 	rts
 ****************
 * a0 - ptr to TilesetBrowser
 ScrollDown:
-	movem.l d2-d4/a2,-(sp)
 	lea.l ScrollInfo,a1
 	move.w pi_VertPot(a1),d2
 	cmp.w #(65536-4096),d2
@@ -125,18 +208,7 @@ ScrollDown:
 .max:
 	move.w #$FFFF,d2
 .doScroll:
-	move.l TilesetBrowser_Window(a0),a1
-	lea.l ScrollBarGadget,a0
-	move.l #0,a2						; a2 = No requester
-	move.w #AUTOKNOB!FREEVERT,d0		; d0 = flags
-	clr.w d1							; d1 = horizontal pot
-	move.w #MAXBODY,d3					; d3 = horizbody
-	move.w #4096,d4						; d4 = vertbody
-	move.l IntuiBase,a6
-	jsr _LVOModifyProp(a6)
-.done:
-	movem.l (sp)+,d2-d4/a2
-	rts
+	bra.s UpdateScroll
 ****************
 * a0 - ptr to Tileset Browser
 OpenTileset:
@@ -262,15 +334,8 @@ ClearTilesetListRect:
 	move.l a0,-(sp)							; save browser
 	move.l TilesetBrowser_Window(a0),a0
 	move.l wd_RPort(a0),-(sp)				; save rastport
-.setupRPort:
 	move.l (sp),a1							; a1 = rport
-	moveq.b #0,d0
-	move.l GfxBase,a6
-	jsr _LVOSetAPen(a6)
-	move.l (sp),a1							; a1 = rport
-	move.b #RP_JAM1,d0
-	move.l GfxBase,a6
-	jsr _LVOSetDrMd(a6)
+	bsr.w InitRPortClear
 .drawNew:
 	move.l (sp),a1							; a1 = rport
 	move.w 8(sp),d1
