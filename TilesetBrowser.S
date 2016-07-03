@@ -110,6 +110,21 @@ CloseTilesetBrowser:
  XDEF CloseTilesetBrowser
 ****************
 * a0 - ptr to TilesetBrowser
+HighlightSelectedListGadget:
+	move.w TilesetBrowser_Selected(a0),d0
+	move.w TilesetBrowser_FirstShown(a0),d1
+	sub.w d1,d0									; d0 = gadget index
+	blt.s .done
+	cmp.w #8,d0									; is this on screen?
+	bge.s .done
+	lea.l TilesetListGadgets,a0
+	mulu.w #gg_SIZEOF,d0					; d0 = gg_SIZEOF * gadget to highlight
+	lea.l (a0,d0),a0						; newly selected gadget
+	or.w #GFLG_SELECTED,gg_Flags(a0)
+.done:
+	rts	
+****************
+* a0 - ptr to TilesetBrowser
 UpdateListGadgets:
 	move.l a0,-(sp)
 	bsr.s RemoveAllListGadgets
@@ -119,10 +134,11 @@ UpdateListGadgets:
 	move.w TilesetBrowser_FirstShown(a0),d0
 	bsr.w InitTilesetGadgets
 	move.l (sp),a0
+	bsr.s HighlightSelectedListGadget
+	move.l (sp),a0
 	bsr.s AddAllListGadgets
 	move.l (sp)+,a0
-	bsr.w RefreshAllListGadgets
-	rts
+	bra.w RefreshAllListGadgets
 ****************
 * a1 - rport
 InitRPortClear:
@@ -228,7 +244,7 @@ ScrollUp:
 * a0 - ptr to TilesetBrowser
 * d0 - new pot value
 UpdateScrollGadget:
-	movem.l d2-d4/a2,-(sp)
+	movem.l d2-d5/a2,-(sp)
 	move.w d0,d2						; d2 = new pot value
 	move.l TilesetBrowser_Window(a0),a1
 	lea.l ScrollBarGadget,a0
@@ -237,9 +253,10 @@ UpdateScrollGadget:
 	clr.w d1							; d1 = horizontal pot
 	move.w #MAXBODY,d3					; d3 = horizbody
 	move.w #4096,d4						; d4 = vertbody
+	move.w #1,d5
 	move.l IntuiBase,a6
-	jsr _LVOModifyProp(a6)
-	movem.l (sp)+,d2-d4/a2
+	jsr _LVONewModifyProp(a6)
+	movem.l (sp)+,d2-d5/a2
 	rts
 ****************
 * a0 - ptr to TilesetBrowser
@@ -317,18 +334,24 @@ GetGadgetsToUpdate:
 ****************
 * a0 - ptr to Tileset Browser
 * a1 - ptr to newly selected gadget
-* a2 - ptr to old selected gadget
+* a2 - ptr to old selected gadget (or NULL)
+* returns:
+* d0 - index of newly selected gadget
+* d1 - index of old selected gadget (or undefined)
 RemoveUpdatedListGadgets:
 	move.l TilesetBrowser_Window(a0),-(sp)
 	move.l (sp),a0							; a0 = window
 	move.l IntuiBase,a6
 	jsr _LVORemoveGadget(a6)
 	move.l (sp)+,a0							; a0 = window
-	move.l a2,a1							; a1 = old selected gadget
-; don't do anything if the old gadget = NULL
+	cmp.l #0,a2								; is old gadget NULL?
 	beq.s .done
+	move.l a2,a1							; a1 = old selected gadget
+	move.w d0,-(sp)							; store index of newly selected gadget
 	move.l IntuiBase,a6
-	jmp _LVORemoveGadget(a6)
+	jsr _LVORemoveGadget(a6)
+	move.w d0,d1							; d1 = index of former selected gadget
+	move.w (sp)+,d0							; d0 = index of newly selected gadget
 .done:
 	rts
 ****************
@@ -346,6 +369,7 @@ RefreshUpdatedTilesetGadgets:
 	jsr _LVORefreshGList(a6)
 	move.l (sp)+,a1							; a1 = window
 	move.l (sp)+,a0							; a0 = old gadget
+	cmp.l #0,a0								; is old gadget NULL?
 	beq.s .done
 	move.l #0,a2							; a2 = no requester
 	moveq.w #1,d0
@@ -405,53 +429,68 @@ ClearTilesetListRect:
 ****************
 * a0 - ptr to TilesetBrowser
 * a1 - newly selected gadget
-* a2 - old selected gadget
+* a2 - old selected gadget (or NULL)
+* d0 - new gadget index
+* d1 - old gadget index (or undefined)
 AddUpdatedTilesetGadgets:
+	move.w d0,-(sp)							; store new gadget index
 	move.l TilesetBrowser_Window(a0),-(sp)
-.addNewGadget:
+.addOldGadget:
+	cmp.l #0,a2								; is there an old gadget?
+	beq.s .addNewGadget
+	move.w d1,d0							; d0 = position to add old gadget
 	move.l (sp),a0							; a0 = window
-	move.w gg_GadgetID(a1),d0				; insert here
+	exg a2,a1								; a1 = old gadget, a2 = new gadget
 	move.l IntuiBase,a6
 	jsr _LVOAddGadget(a6)
-.addOldGadget:
+	move.l a2,a1							; a1 = new gadget
+.addNewGadget:
 	move.l (sp)+,a0							; a0 = window
-	move.l a2,a1							; a1 = old gadget
-	beq.s .done
-	move.w gg_GadgetID(a1),d0				; insert here
+	move.w (sp)+,d0							; d0 = position
 	move.l IntuiBase,a6
 	jmp _LVOAddGadget(a6)
-.done:
-	rts
 ****************
 * a0 - ptr to Tileset Browser
 * a1 - gadget clicked
 TilesetBrowserGadgetDown:
 	move.l a2,-(sp)
-	move.w gg_GadgetID(a1),d0				; d0 = gadget clicked
+	move.w gg_GadgetID(a1),d0
 	move.w d0,d1							; d1 = tileset clicked 
 	add.w TilesetBrowser_FirstShown(a0),d1	; ...
 ; don't update if there's no change
-; TODO: can probably set this up here and save pushing d2 onto the stack
+; TODO: can probably set this up here and save pushing d1 onto the stack
 	cmp.w TilesetBrowser_Selected(a0),d1
 	beq.s .done
-	move.w d0,-(sp)
+	move.w d0,-(sp)							; store gadget clicked
 	move.l a0,-(sp)							; store tilesetbrowser
-	move.w d0,-(sp)							; store new gadget
+	move.w d1,-(sp)							; store new gadget
+; stack: 0: selected.w, 2: TilesetBrowser.l, 6: gadgetID.w
 	bsr.w GetGadgetsToUpdate
 	movem.l a0-a1,-(sp)						; store gadgets to update
+; stack: 0: gadgetsToUpdate.2l, 8: selected.w, 10: TilesetBrowser.l, 14: gadgetID.w
 	movem.l (sp),a1-a2						; shift them up
 	move.l 10(sp),a0						; a0 = tileset browser
 	bsr.w RemoveUpdatedListGadgets
-	movem.l (sp),a0-a1						; a0,a1 = new/old gadgets
+	movem.w d0-d1,-(sp)
+; stack:
+; 0: GadgetIndexes.2w
+; 4: gadgetsToUpdate.2l
+; 12: selected.w
+; 14: TilesetBrowser.l
+; 18: GadgetID.w
+	movem.l 4(sp),a0-a1						; a0,a1 = new/old gadgets
 	bsr.w UpdateSelectedGadgetFlags
-	move.l 10(sp),a0						; a0 = tileset browser
-	move.w 8(sp),d0							; d0 = newly selected gadget
+	move.l 14(sp),a0						; a0 = tileset browser
+	move.w 18(sp),d0						; d0 = newly selected gadget
 	bsr.w ClearTilesetListRect
+	movem.w (sp)+,d0-d1
+; stack: 0: gadgetsToUpdate.2l, 8: selected.w, 10: TilesetBrowser.l, 14: gadgetID.w
 	move.l 10(sp),a0						; a0 = tileset browser
 	movem.l (sp),a1-a2						; a1,a2 = new/old gadgets
-	bsr.s AddUpdatedTilesetGadgets
+	bsr.w AddUpdatedTilesetGadgets
 	move.l 10(sp),a0						; a0 = tileset browser
 	movem.l (sp)+,a1-a2						; a1,a2 = new/old gadgets
+; stack: 0: selected.w, 2: TilesetBrowser.l, 6: gadgetID.w
 	bsr.w RefreshUpdatedTilesetGadgets
 .update:
 	move.w (sp)+,d0							; d0 = new selected
@@ -485,7 +524,7 @@ BrowserNewWin:
 	dc.b -1,-1										; default pens
 	dc.l CLOSEWINDOW!GADGETUP!GADGETDOWN
 	dc.l WINDOWCLOSE!WINDOWDEPTH!WINDOWDRAG
-	dc.l TilesetListGadgets							; first gadget
+	dc.l ScrollUpGadget								; first gadget
 	dc.l 0											; default checkmark image
 	dc.l BrowserTitle								; title
 	dc.l 0											; PATCH screen ptr
@@ -614,120 +653,6 @@ OpenTilesetBorder:
 	dc.l OpenTilesetBorderPoints
 	dc.l 0
 
-TilesetListGadgets:
-.entry1:
-	dc.l *+gg_SIZEOF								; next
-	dc.w 8,16										; left, top
-	dc.w 135,12										; width, height
-	dc.w 0											; flags
-	dc.w GACT_IMMEDIATE
-	dc.w GTYP_BOOLGADGET
-	dc.l TilesetListTopBorder
-	dc.l 0											; highlight gfx
-	dc.l TilesetListTexts
-	dc.l 0											; deprecated
-	dc.l 0											; no special info
-	dc.w 0											; ID
-	dc.l 0											; extra data
-.entry2:
-	dc.l *+gg_SIZEOF								; next
-	dc.w 8,28										; left, top
-	dc.w 135,12										; width, height
-	dc.w 0											; flags
-	dc.w GACT_IMMEDIATE
-	dc.w GTYP_BOOLGADGET
-	dc.l TilesetListBorder
-	dc.l 0
-	dc.l TilesetListTexts+it_SIZEOF
-	dc.l 0
-	dc.l 0
-	dc.w 1
-	dc.l 0
-.entry3:
-	dc.l *+gg_SIZEOF								; next
-	dc.w 8,40										; left, top
-	dc.w 135,12										; width, height
-	dc.w 0											; flags
-	dc.w GACT_IMMEDIATE
-	dc.w GTYP_BOOLGADGET
-	dc.l TilesetListBorder
-	dc.l 0											; highlight gfx
-	dc.l TilesetListTexts+it_SIZEOF*2
-	dc.l 0											; deprecated
-	dc.l 0											; no special info
-	dc.w 2											; ID
-	dc.l 0											; extra data
-.entry4:
-	dc.l *+gg_SIZEOF								; next
-	dc.w 8,52										; left, top
-	dc.w 135,12										; width, height
-	dc.w 0											; flags
-	dc.w GACT_IMMEDIATE
-	dc.w GTYP_BOOLGADGET
-	dc.l TilesetListBorder
-	dc.l 0
-	dc.l TilesetListTexts+it_SIZEOF*3
-	dc.l 0
-	dc.l 0
-	dc.w 3
-	dc.l 0
-.entry5:
-	dc.l *+gg_SIZEOF								; next
-	dc.w 8,64										; left, top
-	dc.w 135,12										; width, height
-	dc.w 0											; flags
-	dc.w GACT_IMMEDIATE
-	dc.w GTYP_BOOLGADGET
-	dc.l TilesetListBorder
-	dc.l 0											; highlight gfx
-	dc.l TilesetListTexts+it_SIZEOF*4
-	dc.l 0											; deprecated
-	dc.l 0											; no special info
-	dc.w 4											; ID
-	dc.l 0											; extra data
-.entry6:
-	dc.l *+gg_SIZEOF								; next
-	dc.w 8,76										; left, top
-	dc.w 135,12										; width, height
-	dc.w 0											; flags
-	dc.w GACT_IMMEDIATE
-	dc.w GTYP_BOOLGADGET
-	dc.l TilesetListBorder
-	dc.l 0
-	dc.l TilesetListTexts+it_SIZEOF*5
-	dc.l 0
-	dc.l 0
-	dc.w 5
-	dc.l 0
-.entry7:
-	dc.l *+gg_SIZEOF								; next
-	dc.w 8,88										; left, top
-	dc.w 135,12										; width, height
-	dc.w 0											; flags
-	dc.w GACT_IMMEDIATE
-	dc.w GTYP_BOOLGADGET
-	dc.l TilesetListBorder
-	dc.l 0											; highlight gfx
-	dc.l TilesetListTexts+it_SIZEOF*6
-	dc.l 0											; deprecated
-	dc.l 0											; no special info
-	dc.w 6											; ID
-	dc.l 0											; extra data
-.entry8:
-	dc.l ScrollUpGadget								; next
-	dc.w 8,100										; left, top
-	dc.w 135,12										; width, height
-	dc.w 0											; flags
-	dc.w GACT_IMMEDIATE
-	dc.w GTYP_BOOLGADGET
-	dc.l TilesetListBottomBorder
-	dc.l 0
-	dc.l TilesetListTexts+it_SIZEOF*7
-	dc.l 0
-	dc.l 0
-	dc.w 7
-	dc.l 0
-
 ScrollUpGadget:
 	dc.l ScrollDownGadget
 	dc.w 144,16					; left, top
@@ -797,7 +722,7 @@ ScrollBarGadget:
 	dc.l 0
 
 OpenTilesetGadget:
-	dc.l 0											; next
+	dc.l TilesetListGadgets							; next
 	dc.w 8,116										; left,top
 	dc.w OPEN_TILESET_BUTTON_WIDTH,OPEN_TILESET_BUTTON_HEIGHT
 	dc.w GFLG_GADGHCOMP
@@ -809,6 +734,120 @@ OpenTilesetGadget:
 	dc.l 0
 	dc.l 0
 	dc.w OPEN_TILESET_ID
+	dc.l 0
+
+TilesetListGadgets:
+.entry1:
+	dc.l *+gg_SIZEOF								; next
+	dc.w 8,16										; left, top
+	dc.w 135,12										; width, height
+	dc.w GFLG_GADGHCOMP								; flags
+	dc.w GACT_IMMEDIATE
+	dc.w GTYP_BOOLGADGET
+	dc.l TilesetListTopBorder
+	dc.l 0											; highlight gfx
+	dc.l TilesetListTexts
+	dc.l 0											; deprecated
+	dc.l 0											; no special info
+	dc.w 0											; ID
+	dc.l 0											; extra data
+.entry2:
+	dc.l *+gg_SIZEOF								; next
+	dc.w 8,28										; left, top
+	dc.w 135,12										; width, height
+	dc.w GFLG_GADGHCOMP								; flags
+	dc.w GACT_IMMEDIATE
+	dc.w GTYP_BOOLGADGET
+	dc.l TilesetListBorder
+	dc.l 0
+	dc.l TilesetListTexts+it_SIZEOF
+	dc.l 0
+	dc.l 0
+	dc.w 1
+	dc.l 0
+.entry3:
+	dc.l *+gg_SIZEOF								; next
+	dc.w 8,40										; left, top
+	dc.w 135,12										; width, height
+	dc.w GFLG_GADGHCOMP								; flags
+	dc.w GACT_IMMEDIATE
+	dc.w GTYP_BOOLGADGET
+	dc.l TilesetListBorder
+	dc.l 0											; highlight gfx
+	dc.l TilesetListTexts+it_SIZEOF*2
+	dc.l 0											; deprecated
+	dc.l 0											; no special info
+	dc.w 2											; ID
+	dc.l 0											; extra data
+.entry4:
+	dc.l *+gg_SIZEOF								; next
+	dc.w 8,52										; left, top
+	dc.w 135,12										; width, height
+	dc.w GFLG_GADGHCOMP
+	dc.w GACT_IMMEDIATE
+	dc.w GTYP_BOOLGADGET
+	dc.l TilesetListBorder
+	dc.l 0
+	dc.l TilesetListTexts+it_SIZEOF*3
+	dc.l 0
+	dc.l 0
+	dc.w 3
+	dc.l 0
+.entry5:
+	dc.l *+gg_SIZEOF								; next
+	dc.w 8,64										; left, top
+	dc.w 135,12										; width, height
+	dc.w GFLG_GADGHCOMP								; flags
+	dc.w GACT_IMMEDIATE
+	dc.w GTYP_BOOLGADGET
+	dc.l TilesetListBorder
+	dc.l 0											; highlight gfx
+	dc.l TilesetListTexts+it_SIZEOF*4
+	dc.l 0											; deprecated
+	dc.l 0											; no special info
+	dc.w 4											; ID
+	dc.l 0											; extra data
+.entry6:
+	dc.l *+gg_SIZEOF								; next
+	dc.w 8,76										; left, top
+	dc.w 135,12										; width, height
+	dc.w GFLG_GADGHCOMP								; flags
+	dc.w GACT_IMMEDIATE
+	dc.w GTYP_BOOLGADGET
+	dc.l TilesetListBorder
+	dc.l 0
+	dc.l TilesetListTexts+it_SIZEOF*5
+	dc.l 0
+	dc.l 0
+	dc.w 5
+	dc.l 0
+.entry7:
+	dc.l *+gg_SIZEOF								; next
+	dc.w 8,88										; left, top
+	dc.w 135,12										; width, height
+	dc.w GFLG_GADGHCOMP								; flags
+	dc.w GACT_IMMEDIATE
+	dc.w GTYP_BOOLGADGET
+	dc.l TilesetListBorder
+	dc.l 0											; highlight gfx
+	dc.l TilesetListTexts+it_SIZEOF*6
+	dc.l 0											; deprecated
+	dc.l 0											; no special info
+	dc.w 6											; ID
+	dc.l 0											; extra data
+.entry8:
+	dc.l 0											; next
+	dc.w 8,100										; left, top
+	dc.w 135,12										; width, height
+	dc.w GFLG_GADGHCOMP								; flags
+	dc.w GACT_IMMEDIATE
+	dc.w GTYP_BOOLGADGET
+	dc.l TilesetListBottomBorder
+	dc.l 0
+	dc.l TilesetListTexts+it_SIZEOF*7
+	dc.l 0
+	dc.l 0
+	dc.w 7
 	dc.l 0
 
 TestStr:
