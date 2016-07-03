@@ -647,10 +647,10 @@ SpawnTilesetEditor:
  XDEF SpawnTilesetEditor
 ****
 NewTilesetItemHandler:
-	move.b Project+Project_TilesetCnt,d0
+	move.w Project+Project_TilesetCnt,d0
 	bsr.s SpawnTilesetEditor
 ; TODO: add a test to make sure this succeeded before doing this
-	addq.b #1,Project+Project_TilesetCnt
+	addq.w #1,Project+Project_TilesetCnt
 	rts
 ****
 OpenTilesetItemHandler:

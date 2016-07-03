@@ -53,12 +53,12 @@ InitEnabledGadgets:
 	lea.l (a2,d1),a2						; a2 = first name displayed	
 ; set d1 to be the number of tilesets (total) after the last currently
 ; initialized tileset (of the ones we're going to display)
-	move.b Project+Project_TilesetCnt,d1
+	move.w Project+Project_TilesetCnt,d1
 	sub.b d0,d1
 	moveq.w #8-1,d0							; d0 - # of gadgets left
 	bra.s .test
 .loop:
-	and.w #(~GFLG_DISABLED),gg_Flags(a0)
+	and.w #(~(GFLG_DISABLED!GFLG_SELECTED)),gg_Flags(a0)
 	move.l a2,it_IText(a1)
 	move.l a1,gg_GadgetText(a0)
 .next:
@@ -69,7 +69,7 @@ InitEnabledGadgets:
 .test:
 	tst.b d1								; zero left total?
 	dble d0,.loop
-	move.l (sp)+,a2
+	movem.l (sp)+,a2
 	rts
 ****************
 * a0 - first disabled gadget
@@ -78,6 +78,7 @@ InitDisabledGadgets:
 .loop:
 	move.l #NoTilesetText,gg_GadgetText(a0)
 	or.w #GFLG_DISABLED,gg_Flags(a0)
+	and.w #(~GFLG_SELECTED),gg_Flags(a0)
 	move.l gg_NextGadget(a0),a0
 	dbra d0,.loop
 	rts
@@ -195,7 +196,7 @@ UpdateScroll:
 	move.w (sp)+,d0								; d0 = old first shown
 	cmp.w TilesetBrowser_FirstShown(a0),d0
 	beq.s .updateScrollGadget					; don't redraw if no change
-	move.l (sp),a0	
+	move.l (sp),a0
 	bsr.w UpdateListGadgets
 .updateScrollGadget:
 	move.l (sp)+,a0
@@ -274,6 +275,8 @@ TilesetBrowserGadgetUp:
 	beq.s .scrollDown
 	cmp.w #OPEN_TILESET_ID,d0
 	beq.s .openTileset
+	cmp.w #SCROLL_BAR_ID,d0
+	beq.s .updateScroll
 	bra.s .done
 .scrollUp:
 	bsr.w ScrollUp
@@ -283,6 +286,11 @@ TilesetBrowserGadgetUp:
 	bra.s .done
 .openTileset:
 	bsr.s OpenTileset
+	bra.s .done
+.updateScroll:
+	lea.l ScrollInfo,a1
+	move.w pi_VertPot(a1),d0
+	bsr.w UpdateScroll
 .done:
 	rts
  XDEF TilesetBrowserGadgetUp
@@ -402,14 +410,14 @@ AddUpdatedTilesetGadgets:
 	move.l TilesetBrowser_Window(a0),-(sp)
 .addNewGadget:
 	move.l (sp),a0							; a0 = window
-	move.w #-1,d0							; add to end
+	move.w gg_GadgetID(a1),d0				; insert here
 	move.l IntuiBase,a6
 	jsr _LVOAddGadget(a6)
 .addOldGadget:
 	move.l (sp)+,a0							; a0 = window
 	move.l a2,a1							; a1 = old gadget
 	beq.s .done
-	move.w #-1,d0							; add to end
+	move.w gg_GadgetID(a1),d0				; insert here
 	move.l IntuiBase,a6
 	jmp _LVOAddGadget(a6)
 .done:
@@ -419,10 +427,14 @@ AddUpdatedTilesetGadgets:
 * a1 - gadget clicked
 TilesetBrowserGadgetDown:
 	move.l a2,-(sp)
-	move.w gg_GadgetID(a1),d0
+	move.w gg_GadgetID(a1),d0				; d0 = gadget clicked
+	move.w d0,d1							; d1 = tileset clicked 
+	add.w TilesetBrowser_FirstShown(a0),d1	; ...
 ; don't update if there's no change
-	cmp.w TilesetBrowser_Selected(a0),d0
+; TODO: can probably set this up here and save pushing d2 onto the stack
+	cmp.w TilesetBrowser_Selected(a0),d1
 	beq.s .done
+	move.w d0,-(sp)
 	move.l a0,-(sp)							; store tilesetbrowser
 	move.w d0,-(sp)							; store new gadget
 	bsr.w GetGadgetsToUpdate
@@ -444,7 +456,8 @@ TilesetBrowserGadgetDown:
 .update:
 	move.w (sp)+,d0							; d0 = new selected
 	move.l (sp)+,a0							; a0 = tilesetbrowser
-	move.w d0,TilesetBrowser_Selected(a0)
+	move.w (sp)+,d1
+	move.w d1,TilesetBrowser_Selected(a0)
 .done:
 	move.l (sp)+,a2
 	rts
@@ -457,6 +470,7 @@ BrowserTitle:
 SCROLL_UP_ID	=8
 SCROLL_DOWN_ID	=9
 OPEN_TILESET_ID	=10
+SCROLL_BAR_ID	=11
 
 BROWSER_WIDTH	=160
 BROWSER_HEIGHT	=192
@@ -471,7 +485,7 @@ BrowserNewWin:
 	dc.b -1,-1										; default pens
 	dc.l CLOSEWINDOW!GADGETUP!GADGETDOWN
 	dc.l WINDOWCLOSE!WINDOWDEPTH!WINDOWDRAG
-	dc.l ScrollUpGadget								; first gadget
+	dc.l TilesetListGadgets							; first gadget
 	dc.l 0											; default checkmark image
 	dc.l BrowserTitle								; title
 	dc.l 0											; PATCH screen ptr
@@ -600,89 +614,6 @@ OpenTilesetBorder:
 	dc.l OpenTilesetBorderPoints
 	dc.l 0
 
-ScrollUpGadget:
-	dc.l ScrollDownGadget
-	dc.w 144,16					; left, top
-	dc.w 10,12
-	dc.w GFLG_GADGHCOMP
-	dc.w GACT_RELVERIFY
-	dc.w GTYP_BOOLGADGET
-	dc.l ScrollButtonBorder
-	dc.l 0
-	dc.l ScrollUpTxt
-	dc.l 0
-	dc.l 0
-	dc.w SCROLL_UP_ID
-	dc.l 0
-
-ScrollDownGadget:
-	dc.l ScrollBarGadget
-	dc.w 144,100
-	dc.w 10,12
-	dc.w GFLG_GADGHCOMP
-	dc.w GACT_RELVERIFY
-	dc.w GTYP_BOOLGADGET
-	dc.l ScrollButtonBorder
-	dc.l 0
-	dc.l ScrollDownTxt
-	dc.l 0
-	dc.l 0
-	dc.w SCROLL_DOWN_ID
-	dc.l 0
-
-ScrollInfo:
-	dc.w AUTOKNOB!FREEVERT
-	dc.w 0,0						; HPot, VPot
-	dc.w MAXBODY,4096				; HBody,VBody
-	dc.w 0,0						; width,height
-	dc.w 0,0						; HPosRes,VPosRes
-	dc.w 0,0						; leftborder,topborder
-
-ScrollBarBorderPoints:
-	dc.w -1,-1
-	dc.w 12,-1
-	dc.w 12,15
-	dc.w -1,15
-	dc.w -1,-1
-
-ScrollBarBorder:
-	dc.l 0,0						; left,top
-	dc.b 3,0						; front,back pen
-	dc.b 0							; jam1
-	dc.b 0							; number of points
-	dc.l ScrollBarBorderPoints		; points
-	dc.l 0							; next border
-
-ScrollBarGadget:
-	dc.l OpenTilesetGadget			; next
-	dc.w 143,27						; left,top
-	dc.w 11,73						; width,height
-	dc.w 0							; flags
-	dc.w 0							; activation
-	dc.w GTYP_PROPGADGET			; type
-	dc.l ScrollBarBorder			; border
-	dc.l 0							; highlight border
-	dc.l 0							; text
-	dc.l 0							; deprecated
-	dc.l ScrollInfo
-	dc.w 10
-	dc.l 0
-
-OpenTilesetGadget:
-	dc.l TilesetListGadgets							; next
-	dc.w 8,116										; left,top
-	dc.w OPEN_TILESET_BUTTON_WIDTH,OPEN_TILESET_BUTTON_HEIGHT
-	dc.w GFLG_GADGHCOMP
-	dc.w GACT_RELVERIFY
-	dc.w GTYP_BOOLGADGET
-	dc.l OpenTilesetBorder
-	dc.l 0
-	dc.l OpenTilesetText
-	dc.l 0
-	dc.l 0
-	dc.w OPEN_TILESET_ID
-	dc.l 0
-
 TilesetListGadgets:
 .entry1:
 	dc.l *+gg_SIZEOF								; next
@@ -783,7 +714,7 @@ TilesetListGadgets:
 	dc.w 6											; ID
 	dc.l 0											; extra data
 .entry8:
-	dc.l 0											; next
+	dc.l ScrollUpGadget								; next
 	dc.w 8,100										; left, top
 	dc.w 135,12										; width, height
 	dc.w 0											; flags
@@ -795,6 +726,89 @@ TilesetListGadgets:
 	dc.l 0
 	dc.l 0
 	dc.w 7
+	dc.l 0
+
+ScrollUpGadget:
+	dc.l ScrollDownGadget
+	dc.w 144,16					; left, top
+	dc.w 10,12
+	dc.w GFLG_GADGHCOMP
+	dc.w GACT_RELVERIFY
+	dc.w GTYP_BOOLGADGET
+	dc.l ScrollButtonBorder
+	dc.l 0
+	dc.l ScrollUpTxt
+	dc.l 0
+	dc.l 0
+	dc.w SCROLL_UP_ID
+	dc.l 0
+
+ScrollDownGadget:
+	dc.l ScrollBarGadget
+	dc.w 144,100
+	dc.w 10,12
+	dc.w GFLG_GADGHCOMP
+	dc.w GACT_RELVERIFY
+	dc.w GTYP_BOOLGADGET
+	dc.l ScrollButtonBorder
+	dc.l 0
+	dc.l ScrollDownTxt
+	dc.l 0
+	dc.l 0
+	dc.w SCROLL_DOWN_ID
+	dc.l 0
+
+ScrollInfo:
+	dc.w AUTOKNOB!FREEVERT
+	dc.w 0,0						; HPot, VPot
+	dc.w MAXBODY,4096				; HBody,VBody
+	dc.w 0,0						; width,height
+	dc.w 0,0						; HPosRes,VPosRes
+	dc.w 0,0						; leftborder,topborder
+
+ScrollBarBorderPoints:
+	dc.w -1,-1
+	dc.w 12,-1
+	dc.w 12,15
+	dc.w -1,15
+	dc.w -1,-1
+
+ScrollBarBorder:
+	dc.l 0,0						; left,top
+	dc.b 3,0						; front,back pen
+	dc.b 0							; jam1
+	dc.b 0							; number of points
+	dc.l ScrollBarBorderPoints		; points
+	dc.l 0							; next border
+
+ScrollBarGadget:
+	dc.l OpenTilesetGadget			; next
+	dc.w 143,27						; left,top
+	dc.w 11,73						; width,height
+	dc.w 0							; flags
+	dc.w GACT_RELVERIFY				; activation
+	dc.w GTYP_PROPGADGET			; type
+	dc.l ScrollBarBorder			; border
+	dc.l 0							; highlight border
+	dc.l 0							; text
+	dc.l 0							; deprecated
+	dc.l ScrollInfo
+	dc.w SCROLL_BAR_ID
+	dc.l 0
+
+OpenTilesetGadget:
+	dc.l 0											; next
+	dc.w 8,116										; left,top
+	dc.w OPEN_TILESET_BUTTON_WIDTH,OPEN_TILESET_BUTTON_HEIGHT
+	dc.w GFLG_GADGHCOMP
+	dc.w GACT_RELVERIFY
+	dc.w GTYP_BOOLGADGET
+	dc.l OpenTilesetBorder
+	dc.l 0
+	dc.l OpenTilesetText
+	dc.l 0
+	dc.l 0
+	dc.w OPEN_TILESET_ID
 	dc.l 0
 
 TestStr:
