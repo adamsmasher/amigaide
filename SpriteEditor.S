@@ -510,14 +510,18 @@ CloseSpriteEditor:
 SetSpriteEditorNum:
 	move.l a2,-(sp)
 	move.l a0,a2							; a2 = SpriteEditor
-	move.b d0,SpriteEditor_Num(a2)
+	move.w d0,-(sp)
+	bsr.s SetTilesetEditorData
+	move.l a2,a0							; a0 = SpriteEditor
+	move.w (sp)+,d0							; d0 = sprite editor num
+	move.w d0,SpriteEditor_Num(a2)
 	lea.l Project+Project_TilesetNames,a0
-	move.b d0,d1							; d1 = Tileset number
-	lsl.b #4,d1								; d1 = Offset into tileset names
+	move.w d0,d1							; d1 = Tileset number
+	lsl.w #4,d1								; d1 = Offset into tileset names
 	lea.l (a0,d1),a0						; a0 = ptr to name
 	move.l a0,SpriteEditor_NameSI+si_Buffer(a2)	
 	lea.l TensTable,a0
-	move.b (a0,d0),d1
+	move.b (a0,d0),d1						; d1 = tens digit
 	lsr.b #4,d1
 	add.b #'0',d1							; d1 = tens digit ASCII
 	move.b d1,SpriteEditor_Title+7(a2)
@@ -526,6 +530,16 @@ SetSpriteEditorNum:
 	add.b #'0',d1							; d0 = ones digit ASCII
 	move.b d1,SpriteEditor_Title+8(a2)
 	move.l (sp)+,a2
+	rts
+
+*******************
+* a0 - TilesetEditor
+* d0 - Tileset #
+SetTilesetEditorData:
+	lsl.w #6,d0
+	lea.l Project+Project_TilesetImgs,a1
+	lea.l (a1,d0),a1
+	move.l a1,SpriteEditor_Data(a0)
 	rts
 
 	SECTION MyData,DATA
@@ -787,10 +801,10 @@ SprEditorTemplate:
 	dc.b 3								; 0b0000.0011 - planes 0 and 1
 	dc.b 0								; planeonoff
 	dc.l 0
+.data:
+	dc.l 0								; point into project RAM
 .tsnum:
-	dc.b 0
-.unused:
-	dc.b 0
+	dc.w 0
 
 SprEditPatchLocs:
 	dc.l SpriteEditor_NumGG+gg_NextGadget

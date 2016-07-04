@@ -16,7 +16,7 @@ SpriteEditor_PassableGG:rs.b gg_SIZEOF
 SpriteEditor_Pen:		rs.b 1
 SpriteEditor_Unsaved:	rs.b 1
 SpriteEditor_Image:		rs.b ig_SIZEOF
-SpriteEditor_Num:		rs.b 1
-SpriteEditor_Unused1:	rs.b 1
+SpriteEditor_Data:		rs.l 1
+SpriteEditor_Num:		rs.w 1
 
 SPRITEEDITOR_SIZEOF	=__RS
