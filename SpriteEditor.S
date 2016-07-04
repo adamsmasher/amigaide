@@ -56,7 +56,7 @@ PatchNewWin:
 * returns in d0 address of new tile editor, or NULL on failure
 NewSpriteEditor:
 	movem.l a2-a3,-(sp)
-	move.w d0,-(sp)
+	move.w d0,-(sp)						; save tileset number
 	bsr.s AllocEditor
 	tst.l d0							; success?
 	beq.w .done							; fail otherwise
@@ -67,8 +67,8 @@ NewSpriteEditor:
 	bsr.s PatchEditorOffsets
 	move.l a3,a0						; a0 = SpriteEditor ptr
 	bsr.s PatchNewWin
-	move.w (sp)+,d0
-	move.l a3,a0
+	move.w (sp)+,d0						; d0 = tileset number
+	move.l a3,a0						; a0 = SpriteEditorPtr
 	bsr.w SetSpriteEditorNum
 .openWindow:
 	lea.l SprNewWin,a0
