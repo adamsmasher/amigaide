@@ -463,6 +463,20 @@ DrawPxGG:
 * d0 - column
 * d1 - row
 DrawPxData:
+	lea.l SpriteEditor_Image(a0),a1
+	move.l ig_ImageData(a1),a1
+	movem.l d0-d1/a0,-(sp)
+	bsr.s DrawIntoBuffer
+	movem.l (sp)+,d0-d1/a0
+	move.l SpriteEditor_Data(a0),a1
+	bra.s DrawIntoBuffer
+	rts
+****************
+* a0 - ptr to SpriteEditor
+* a1 - buffer
+* d0 - column
+* d1 - row
+DrawIntoBuffer:	
 	movem.l d2-d3,-(sp)
 	lsl.w #1,d1								; d1 = row byte offset
 	move.w d0,d2							; d2 = column
@@ -472,19 +486,17 @@ DrawPxData:
 	neg.w d0
 	add.w #7,d0
 	move.b SpriteEditor_Pen(a0),d2
-	lea.l SpriteEditor_Image(a0),a0
-	move.l ig_ImageData(a0),a0
 	moveq #1,d3								; 2 bitplanes
 .loop:
 	btst #0,d2
 	beq.s .bclr
-	bset d0,(a0,d1)
+	bset d0,(a1,d1)
 	bra.s .loopEnd
 .bclr:
-	bclr d0,(a0,d1)
+	bclr d0,(a1,d1)
 .loopEnd:
 	lsr.b #1,d2								; next bit plane
-	add.l #32,a0							; next bit plane
+	add.l #32,a1							; next bit plane
 	dbra d3,.loop
 	movem.l (sp)+,d2-d3
 	rts
