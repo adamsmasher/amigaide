@@ -67,9 +67,13 @@ NewSpriteEditor:
 	bsr.s PatchEditorOffsets
 	move.l a3,a0						; a0 = SpriteEditor ptr
 	bsr.s PatchNewWin
+.setSpriteEditorNum:
 	move.w (sp)+,d0						; d0 = tileset number
 	move.l a3,a0						; a0 = SpriteEditorPtr
 	bsr.w SetSpriteEditorNum
+.loadImageData:
+	move.l a3,a0
+	bsr.w LoadImageData
 .openWindow:
 	lea.l SprNewWin,a0
 	move.l IntuiBase,a6
@@ -543,7 +547,6 @@ SetSpriteEditorNum:
 	move.b d1,SpriteEditor_Title+8(a2)
 	move.l (sp)+,a2
 	rts
-
 *******************
 * a0 - TilesetEditor
 * d0 - Tileset #
@@ -553,6 +556,14 @@ SetTilesetEditorData:
 	lea.l (a1,d0),a1
 	move.l a1,SpriteEditor_Data(a0)
 	rts
+*******************
+* a0 - TilesetEditor
+LoadImageData:
+	move.l SpriteEditor_Image+ig_ImageData(a0),a1
+	move.l SpriteEditor_Data(a0),a0
+	move.l #64,d0
+	move.l 4.w,a6							; exec
+	jmp _LVOCopyMem(a6)
 
 	SECTION MyData,DATA
 ******** Sprite window
