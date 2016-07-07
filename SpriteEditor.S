@@ -617,7 +617,8 @@ SetSpriteEditorNum:
 * a0 - TilesetEditor
 * d0 - Tileset #
 SetTilesetEditorData:
-	lsl.w #6,d0
+	lsl.w #8,d0										; 4096 bytes per tile
+	lsl.w #4,d0
 	lea.l Project+Project_TilesetImgs,a1
 	lea.l (a1,d0),a1
 	move.l a1,SpriteEditor_Data(a0)
