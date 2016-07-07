@@ -330,6 +330,10 @@ SpriteEditorGadgetUp:
 	blt.s SetSpriteEditorPen
 	cmp.w #NAME_ID,d0
 	beq.s UpdateName
+	cmp.w #NEXT_ID,d0
+	beq.s NextTile
+	cmp.w #PREV_ID,d0
+	beq.s PrevTile
 	rts
  XDEF SpriteEditorGadgetUp
 ****************
@@ -342,6 +346,44 @@ UpdateName:
 SetSpriteEditorPen:
 	move.b d0,SpriteEditor_Pen(a0)
 	bsr.w DrawPen
+	rts
+****************
+* a0 - ptr to TilesetEditor
+NextTile:
+	move.l SpriteEditor_NumSI+si_LongInt(a0),d0
+	addq.b #1,d0
+	and.l #(TILES_PER_SET-1),d0
+	bra.s UpdateTileNum
+****************
+* a0 - ptr to TilesetEditor
+PrevTile:
+	move.l SpriteEditor_NumSI+si_LongInt(a0),d0
+	subq.b #1,d0
+	and.l #(TILES_PER_SET-1),d0
+	bra.s UpdateTileNum
+	rts
+****************
+* a0 - ptr to TilesetEditor
+* d0 - new TileNum
+UpdateTileNum:
+	move.l a0,-(sp)
+	; TODO: redraw the sprite number gadget
+.updateNum:
+	move.l d0,SpriteEditor_NumSI+si_LongInt(a0)
+.updateData:
+	move.w SpriteEditor_Num(a0),d1
+	lsl.w #8,d1										; 4096 bytes per set
+	lsl.w #4,d1
+	lsl.w #6,d0										; 64 bytes per tile
+	lea.l Project+Project_TilesetImgs,a1
+	lea.l (a1,d1),a1								; get tileset base
+	lea.l (a1,d0),a1								; get tile base
+	move.l a1,SpriteEditor_Data(a0)
+	bsr.w LoadImageData
+	move.l (sp),a0					; a0 = TilesetEditor
+	bsr.w DrawImage
+	move.l (sp)+,a0					; a0 = TilesetEditor
+	bsr.w DrawPreview
 	rts
 ****************
 * a0 - ptr to SpriteEditor
