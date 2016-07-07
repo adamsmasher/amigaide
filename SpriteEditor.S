@@ -118,6 +118,8 @@ DrawSpriteEditor:
 	bsr.w DrawPen
 	move.l (sp),a0
 	bsr.w DrawGrid
+	move.l (sp),a0
+	bsr.w DrawImage
 	move.l (sp)+,a0
 	bra.w DrawPreview
 ****************
@@ -432,24 +434,28 @@ PxClicked:
 	bsr.s DrawPxGG
 	movem.l (sp)+,d0-d1/a0
 	move.l a0,-(sp)
-	bsr.s DrawPxData
+	bsr.w DrawPxData
 	move.l (sp)+,a0
 	bra.w DrawPreviewImg
 *****************
-* a0 - ptr to SpriteEditor
+* a0 - ptr to TilesetEditor
 * d0 - column
 * d1 - row
 DrawPxGG:
 	movem.l d0-d1/a0,-(sp)
 	move.b SpriteEditor_Pen(a0),d0
-	move.l SpriteEditor_Window(a0),a0
-	move.l wd_RPort(a0),a1
-	move.l GfxBase,a6
-	jsr _LVOSetAPen(a6)
+	bsr.s SetRPortColour
 	movem.l (sp)+,d0-d1/a0
 	bra.s DrawPx
 	rts
-	
+****************
+* a0 - ptr to TilesetEditor
+* d0 - colour
+SetRPortColour:
+	move.l SpriteEditor_Window(a0),a0
+	move.l wd_RPort(a0),a1
+	move.l GfxBase,a6
+	jmp _LVOSetAPen(a6)	
 ****************
 * presumes correct pen is set
 * a0 - ptr to SpriteEditor
@@ -470,6 +476,57 @@ DrawPx:
 	move.l GfxBase,a6
 	jsr _LVORectFill(a6)
 	movem.l (sp)+,d2-d3
+	rts
+****************
+* a0 - ptr to TilesetEditor
+DrawImage:
+	movem.l d2/a2-a3,-(sp)
+	move.l a0,a2							; a2 = TilesetEditor
+	move.l SpriteEditor_Data(a0),a3
+	clr.w d2								; row = 0
+.loop:
+	move.l a2,a0							; a0 = TilesetEditor
+	move.l a3,a1							; a1 = ptr to chunk
+	move.w d2,d0							; d0 = row
+	bsr.s DrawRow
+	addq.l #2,a3							; Next chunk
+	addq.w #1,d2							; row++
+	cmp.w #16,d2							; does row = 16?
+	bne.s .loop								; if not, loop
+	movem.l (sp)+,d2/a2-a3
+	rts
+******************
+* a0 - ptr to TilesetEditor
+* a1 - ptr to chunk
+* d0 - row
+DrawRow:
+	movem.l d2-d5/a2,-(sp)
+	move.l a0,a2							; a2 = TilesetEditor
+	move.w (a1),d2							; get plane 1 word
+	move.w 32(a1),d3						; get plane 2 word
+	clr.w d4								; column = 0	
+	move.w d0,d5							; d5 = row
+.loop:
+	move.w d3,d0							; d0 = next px (plane 2)
+	rol.w #1,d0								; shift high order bit to bit 0
+	lsl.w #1,d0								; shift it to bit 1
+	and.w #$0002,d0							; get rid of everything else
+	move.w d2,d1							; d1 = next px (plane 1)
+	rol.w #1,d1								; shift high order bit to bit 0
+	and.w #1,d1								; get rid of everything else
+	or.w d1,d0								; make color
+	move.l a2,a0							; a0 = TilesetEditor
+	bsr.w SetRPortColour
+	move.l a2,a0							; a0 = TilesetEditor
+	move.w d4,d0							; d0 = row
+	move.w d5,d1							; d1 = column
+	bsr.w DrawPx
+	lsl.w d2								; next px (plane 1)
+	lsl.w d3								; next px (plane 2)
+	add.w #1,d4								; next column
+	cmp.w #16,d4
+	bne.s .loop	
+	movem.l (sp)+,d2-d5/a2
 	rts
 ****************
 * a0 - ptr to SpriteEditor
