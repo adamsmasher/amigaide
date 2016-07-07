@@ -626,10 +626,10 @@ SetTilesetEditorData:
 *******************
 * a0 - TilesetEditor
 LoadImageData:
-	move.l SpriteEditor_Image+ig_ImageData(a0),a1
-	move.l SpriteEditor_Data(a0),a0
-	move.l #64,d0
-	move.l 4.w,a6							; exec
+	move.l SpriteEditor_Image+ig_ImageData(a0),a1	; a1 = dest
+	move.l SpriteEditor_Data(a0),a0					; a0 = source
+	move.l #64,d0									; d0 = length
+	move.l 4.w,a6									; exec
 	jmp _LVOCopyMem(a6)
 
 	SECTION MyData,DATA
@@ -837,7 +837,7 @@ SprEditorTemplate:
 	dc.w 0								; pen colour 0
 	dc.l 0								; no special user data
 .prevTileGG:
-	dc.l SpriteEditor_NextGG		; next gadget
+	dc.l SpriteEditor_NextGG			; next gadget
 	dc.w PREV_LEFT,PREV_TOP
 	dc.w PREV_WIDTH,PREV_HEIGHT
 	dc.w GFLG_GADGHCOMP
