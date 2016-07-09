@@ -10,28 +10,28 @@
 	INCLUDE "globals.i"
 
 	INCLUDE "Project.i"
-	INCLUDE "SpriteEditor.i"
+	INCLUDE "TileEditor.i"
 
-	SECTION SpriteEditor,CODE
+	SECTION TileEditor,CODE
 ****************
-* returns in d0 address of new sprite editor, or NULL on failure
+* returns in d0 address of new tile editor, or NULL on failure
 AllocEditor:
-	move.l #SPRITEEDITOR_SIZEOF,d0		; allocate this many bytes
+	move.l #TILEEDITOR_SIZEOF,d0		; allocate this many bytes
 	move.l #MEMF_CLEAR,d1				; best available local, clear it
 	move.l 4.w,a6
 	jmp _LVOAllocMem(a6)
 ****************
-* a1 - ptr to SpriteEditor memory
+* a1 - ptr to TileEditor memory
 MakeEditor:
-	lea.l SprEditorTemplate,a0			; src
-	move.l #SPRITEEDITOR_SIZEOF,d0		; size
+	lea.l TileEditorTemplate,a0			; src
+	move.l #TILEEDITOR_SIZEOF,d0		; size
 	move.l 4.w,a6
 	jmp _LVOCopyMem(a6)
 ****************
-* a0 - ptr to SpriteEditor
+* a0 - ptr to TileEditor
 PatchEditorOffsets:
-	move.l a0,d0						; d0=spriteeditor base
-	lea.l SprEditPatchLocs,a1
+	move.l a0,d0						; d0=tileeditor base
+	lea.l TileEditPatchLocs,a1
 ; NB: it is INTENTIONAL that the first patch point can be 0
 	move.l (a1)+,d1						; d1=patch offset
 .loop:
@@ -41,60 +41,60 @@ PatchEditorOffsets:
 	bne.s .loop
 	rts
 ****************
-* a0 - ptr to SpriteEditor
+* a0 - ptr to TileEditor
 PatchNewWin:
-	lea.l SprNewWin,a1
+	lea.l TileNewWin,a1
 	move.l a0,-(sp)
-	lea.l SpriteEditor_NumGG(a0),a0
+	lea.l TileEditor_NumGG(a0),a0
 	move.l a0,nw_FirstGadget(a1)
-	move.l (sp)+,a0						; a0 = sprite editor ptr
-	lea.l SpriteEditor_Title(a0),a0
+	move.l (sp)+,a0						; a0 = tile editor ptr
+	lea.l TileEditor_Title(a0),a0
 	move.l a0,nw_Title(a1)
 	rts
 ****************
 * d0 - Tileset number
 * returns in d0 address of new tile editor, or NULL on failure
-NewSpriteEditor:
+NewTileEditor:
 	movem.l a2-a3,-(sp)
 	move.w d0,-(sp)						; save tileset number
 	bsr.s AllocEditor
 	tst.l d0							; success?
 	beq.w .done							; fail otherwise
-	move.l d0,a3						; a3 = SpriteEditor ptr
-	move.l a3,a1						; a1 = SpriteEditor ptr
+	move.l d0,a3						; a3 = TileEditor ptr
+	move.l a3,a1						; a1 = TileEditor ptr
 	bsr.s MakeEditor
-	move.l a3,a0						; a0 = SpriteEditor ptr
+	move.l a3,a0						; a0 = TileEditor ptr
 	bsr.s PatchEditorOffsets
-	move.l a3,a0						; a0 = SpriteEditor ptr
+	move.l a3,a0						; a0 = TileEditor ptr
 	bsr.s PatchNewWin
-.setSpriteEditorNum:
+.setTileEditorNum:
 	move.w (sp)+,d0						; d0 = tileset number
-	move.l a3,a0						; a0 = SpriteEditorPtr
-	bsr.w SetSpriteEditorNum
+	move.l a3,a0						; a0 = TileEditorPtr
+	bsr.w SetTileEditorNum
 .loadImageData:
 	move.l a3,a0
 	bsr.w LoadImageData
 .openWindow:
-	lea.l SprNewWin,a0
+	lea.l TileNewWin,a0
 	move.l IntuiBase,a6
 	jsr _LVOOpenWindow(a6)
 	tst.l d0							; success?
 	beq.s .freeEditor					; fail if not
-	move.l d0,SpriteEditor_Window(a3)
-.disableSpriteNum:
-	lea.l SpriteEditor_NumGG(a3),a0
+	move.l d0,TileEditor_Window(a3)
+.disableTileNum:
+	lea.l TileEditor_NumGG(a3),a0
 	move.l d0,a1						; a1=Window
 	move.l #0,a2						; no requester
 	move.l IntuiBase,a6
 	jsr _LVOOffGadget(a6)
 	move.l a3,a0
-	bsr.s DrawSpriteEditor
+	bsr.s DrawTileEditor
 .finish:
 	move.l a3,d0						; return in d0
 	bra.s .done
 .freeEditor:
 	move.l a3,a1						; a1=editor to free
-	move.l #SPRITEEDITOR_SIZEOF,d0
+	move.l #TILEEDITOR_SIZEOF,d0
 	move.l 4.w,a6
 	jsr _LVOFreeMem(a6)
 	moveq.l #0,d0						; return NULL
@@ -102,16 +102,16 @@ NewSpriteEditor:
 	movem.l (sp)+,a2-a3
 	rts
 
-	XDEF NewSpriteEditor
+	XDEF NewTileEditor
 ****************
-* a0 - ptr to SpriteEditor
-DrawSpriteEditor:
+* a0 - ptr to TileEditor
+DrawTileEditor:
 	move.l a0,-(sp)
-	move.l SpriteEditor_Window(a0),a0
+	move.l TileEditor_Window(a0),a0
 	move.l wd_RPort(a0),a0
 	bsr.s DrawPal
 	move.l (sp),a0
-	move.l SpriteEditor_Window(a0),a1
+	move.l TileEditor_Window(a0),a1
 	move.l wd_RPort(a1),a1
 	bsr.w DrawPenBg
 	move.l (sp),a0
@@ -150,11 +150,11 @@ DrawPal:
 	movem.l (sp)+,d2-d4/a2
 	rts
 ****************
-* a0 - ptr to SpriteEditor
+* a0 - ptr to TileEditor
 DrawPen:
 	movem.l d2-d3/a2,-(sp)
-	move.b SpriteEditor_Pen(a0),d0
-	move.l SpriteEditor_Window(a0),a0
+	move.b TileEditor_Pen(a0),d0
+	move.l TileEditor_Window(a0),a0
 	move.l wd_RPort(a0),a2
 	move.l a2,a1						; a1=rport
 	move.l GfxBase,a6
@@ -186,17 +186,17 @@ DrawPenBg:
 	movem.l (sp)+,d2-d3
 	rts
 ****************
-* a0 - SpriteEditor to update preview for
+* a0 - TileEditor to update preview for
 DrawPreview:
 	move.l a0,-(sp)
 	bsr.s DrawPreviewBg
 	move.l (sp)+,a0
 	bra.s DrawPreviewImg
 ****************
-* a0 - SpriteEditor to update preview for
+* a0 - TileEditor to update preview for
 DrawPreviewBg:
 	movem.l d2-d3,-(sp)
-	move.l SpriteEditor_Window(a0),a0
+	move.l TileEditor_Window(a0),a0
 	move.l wd_RPort(a0),a1
 	moveq #3,d0							; pen clr
 	move.l GfxBase,a6
@@ -211,21 +211,21 @@ DrawPreviewBg:
 	movem.l (sp)+,d2-d3
 	rts
 ****************
-* a0 - SpriteEditor to update preview for
+* a0 - TileEditor to update preview for
 DrawPreviewImg:
-	lea.l SpriteEditor_Image(a0),a1
-	move.l SpriteEditor_Window(a0),a0
+	lea.l TileEditor_Image(a0),a1
+	move.l TileEditor_Window(a0),a0
 	move.l wd_RPort(a0),a0
 	move.w #PREVIEW_LEFT,d0
 	move.w #PREVIEW_TOP,d1
 	move.l IntuiBase,a6
 	jmp _LVODrawImage(a6)
 ****************
-* a0 - SpriteEditor to draw Grid for
+* a0 - TileEditor to draw Grid for
 DrawGrid:
 	movem.l d2-d4/a2,-(sp)
 .setColor:
-	move.l SpriteEditor_Window(a0),a1
+	move.l TileEditor_Window(a0),a1
 	move.l wd_RPort(a1),a1
 	move.l a1,a2							; a2 = rport
 	moveq #3,d0								; black
@@ -292,42 +292,42 @@ DrawGrid:
 	movem.l (sp)+,d2-d4/a2
 	rts
 ****************
-* a0 - ptr to sprite editor
+* a0 - ptr to tile editor
 RedrawTitle:
 	move.l a2,-(sp)
-	lea.l SpriteEditor_Title(a0),a1
-	move.l SpriteEditor_Window(a0),a0
+	lea.l TileEditor_Title(a0),a1
+	move.l TileEditor_Window(a0),a0
 	move.l #-1,a2							; don't change screen title
 	move.l IntuiBase,a6
 	jsr _LVOSetWindowTitles(a6)
 	move.l (sp)+,a2
 	rts
 ****************
-* a0 - ptr to sprite editor
+* a0 - ptr to tile editor
 SetUnsaved:
-	move.b #1,SpriteEditor_Unsaved(a0)
-	move.b #'*',SpriteEditor_Title+9(a0)
+	move.b #1,TileEditor_Unsaved(a0)
+	move.b #'*',TileEditor_Title+10(a0)
 	bra.s RedrawTitle
 ****************
-* a0 - ptr to SpriteEditor
+* a0 - ptr to TileEditor
 * a1 - ptr to gadget clicked
-SpriteEditorGadgetDown:
+TileEditorGadgetDown:
 	move.w gg_GadgetID(a1),d0
 	cmp.w #PASSABLE_ID,d0
 	beq.s TogglePassable
 	rts
- XDEF SpriteEditorGadgetDown
+ XDEF TileEditorGadgetDown
 ****************
-* a0 - ptr to SpriteEditor
+* a0 - ptr to TileEditor
 TogglePassable:
 	bra.s SetUnsaved
 ****************
-* a0 - ptr to SpriteEditor
+* a0 - ptr to TileEditor
 * a1 - ptr to gadget clicked
-SpriteEditorGadgetUp:
+TileEditorGadgetUp:
 	move.w gg_GadgetID(a1),d0
 	cmp.w #4,d0								; is this a pal button?
-	blt.s SetSpriteEditorPen
+	blt.s SetTileEditorPen
 	cmp.w #NAME_ID,d0
 	beq.s UpdateName
 	cmp.w #NEXT_ID,d0
@@ -335,29 +335,29 @@ SpriteEditorGadgetUp:
 	cmp.w #PREV_ID,d0
 	beq.s PrevTile
 	rts
- XDEF SpriteEditorGadgetUp
+ XDEF TileEditorGadgetUp
 ****************
-* a0 - ptr to SpriteEditor
+* a0 - ptr to TileEditor
 UpdateName:
 	bra.s SetUnsaved
 ****************
-* a0 - ptr to SpriteEditor
+* a0 - ptr to TileEditor
 * d0 - new pen colour
-SetSpriteEditorPen:
-	move.b d0,SpriteEditor_Pen(a0)
+SetTileEditorPen:
+	move.b d0,TileEditor_Pen(a0)
 	bsr.w DrawPen
 	rts
 ****************
 * a0 - ptr to TilesetEditor
 NextTile:
-	move.l SpriteEditor_NumSI+si_LongInt(a0),d0
+	move.l TileEditor_NumSI+si_LongInt(a0),d0
 	addq.b #1,d0
 	and.l #(TILES_PER_SET-1),d0
 	bra.s UpdateTileNum
 ****************
 * a0 - ptr to TilesetEditor
 PrevTile:
-	move.l SpriteEditor_NumSI+si_LongInt(a0),d0
+	move.l TileEditor_NumSI+si_LongInt(a0),d0
 	subq.b #1,d0
 	and.l #(TILES_PER_SET-1),d0
 	bra.s UpdateTileNum
@@ -369,15 +369,15 @@ UpdateTileNum:
 	move.w d0,-(sp)
 	move.l a0,-(sp)
 .removeGadget:
-	lea.l SpriteEditor_NumGG(a0),a1
-	move.l SpriteEditor_Window(a0),a0
+	lea.l TileEditor_NumGG(a0),a1
+	move.l TileEditor_Window(a0),a0
 	move.l IntuiBase,a6
 	jsr _LVORemoveGadget(a6)
 .updateNum:
 	move.l (sp),a0									; a0 = TilesetEditor
 	move.w 4(sp),d0									; d0 = new Tilenum
-	move.l d0,SpriteEditor_NumSI+si_LongInt(a0)
-	move.l SpriteEditor_NumSI+si_Buffer(a0),a0
+	move.l d0,TileEditor_NumSI+si_LongInt(a0)
+	move.l TileEditor_NumSI+si_Buffer(a0),a0
 	lea.l TensTable,a1
 	move.b (a1,d0),d1								; d1 = tens digit
 	lsr.b #4,d1
@@ -392,29 +392,29 @@ UpdateTileNum:
 	clr.b (a0)										; write terminator
 .addGadget:
 	move.l (sp),a0									; a0 = Tileset Editor
-	lea.l SpriteEditor_NumGG(a0),a1
-	move.l SpriteEditor_Window(a0),a0
+	lea.l TileEditor_NumGG(a0),a1
+	move.l TileEditor_Window(a0),a0
 	move.w #-1,d0									; position = EOL
 	move.l IntuiBase,a6
 	jsr _LVOAddGadget(a6)
 .refreshGadget:
 	move.l (sp),a0									; a0 = TilesetEditor
-	move.l SpriteEditor_Window(a0),a1
-	lea.l SpriteEditor_NumGG(a0),a0
+	move.l TileEditor_Window(a0),a1
+	lea.l TileEditor_NumGG(a0),a0
 	move.l #0,a2									; no requester
 	move.l IntuiBase,a6
 	jsr _LVORefreshGadgets(a6)
 .updateData:
 	move.l (sp),a0									; a0 = TilesetEditor
 	move.w 4(sp),d0									; d0 = New Num
-	move.w SpriteEditor_Num(a0),d1
+	move.w TileEditor_Num(a0),d1
 	lsl.w #8,d1										; 4096 bytes per set
 	lsl.w #4,d1
 	lsl.w #6,d0										; 64 bytes per tile
 	lea.l Project+Project_TilesetImgs,a1
 	lea.l (a1,d1),a1								; get tileset base
 	lea.l (a1,d0),a1								; get tile base
-	move.l a1,SpriteEditor_Data(a0)
+	move.l a1,TileEditor_Data(a0)
 	bsr.w LoadImageData
 	move.l (sp),a0									; a0 = TilesetEditor
 	bsr.w DrawImage
@@ -423,11 +423,11 @@ UpdateTileNum:
 	addq.l #2,sp									; pop off new num
 	rts
 ****************
-* a0 - ptr to SpriteEditor
+* a0 - ptr to TileEditor
 * d0 - mouse X
 * d1 - mouse Y
 * d2 - mouse code
-SpriteEditorMouseButtons:
+TileEditorMouseButtons:
 	cmp.w #SELECTUP,d2
 	beq.s .selectUp
 	cmp.w #SELECTDOWN,d2
@@ -435,7 +435,7 @@ SpriteEditorMouseButtons:
 	rts
 .selectUp:
 	moveq #0,d0								; d0 = FALSE, stop mouse moving
-	move.l SpriteEditor_Window(a0),a0
+	move.l TileEditor_Window(a0),a0
 	move.l IntuiBase,a6
 	jmp _LVOReportMouse(a6)
 .selectDown:
@@ -448,18 +448,18 @@ SpriteEditorMouseButtons:
 	bsr.w SetUnsaved
 	movem.l (sp),d0-d1/a0
 	moveq #1,d0								; d0 = TRUE, capture mouse
-	move.l SpriteEditor_Window(a0),a0
+	move.l TileEditor_Window(a0),a0
 	move.l IntuiBase,a6
 	jsr _LVOReportMouse(a6)
-	movem.l (sp)+,d0-d1/a0					; d0-d1=mouse; a0 = SpriteEditor
+	movem.l (sp)+,d0-d1/a0					; d0-d1=mouse; a0 = TileEditor
 	move.l a0,-(sp)
 	bsr.s ToColRow
-	move.l (sp)+,a0							; a0 = sprite editor
+	move.l (sp)+,a0							; a0 = tile editor
 	bsr.s PxClicked
 .done:
 	rts	
 
- XDEF SpriteEditorMouseButtons
+ XDEF TileEditorMouseButtons
 ****************
 * d0 - mouse X
 * d1 - mouse Y
@@ -489,10 +489,10 @@ ToColRow:
 	lsr.w #3,d1								; d1 = row	
 	rts
 ****************
-* a0 - ptr to sprite editor
+* a0 - ptr to tile editor
 * d0 - mouse X
 * d1 - mouse Y
-SpriteEditorMouseMove:
+TileEditorMouseMove:
 	movem.l d0-d1/a0,-(sp)
 	bsr.s InPxRange
 	movem.l (sp)+,d0-d1/a0
@@ -503,9 +503,9 @@ SpriteEditorMouseMove:
 	bra.s PxClicked
 .done:
 	rts
- XDEF SpriteEditorMouseMove
+ XDEF TileEditorMouseMove
 ****************
-* a0 - ptr to SpriteEditor
+* a0 - ptr to TileEditor
 * d0 - column clicked
 * d1 - row clicked
 PxClicked:
@@ -522,7 +522,7 @@ PxClicked:
 * d1 - row
 DrawPxGG:
 	movem.l d0-d1/a0,-(sp)
-	move.b SpriteEditor_Pen(a0),d0
+	move.b TileEditor_Pen(a0),d0
 	bsr.s SetRPortColour
 	movem.l (sp)+,d0-d1/a0
 	bra.s DrawPx
@@ -531,13 +531,13 @@ DrawPxGG:
 * a0 - ptr to TilesetEditor
 * d0 - colour
 SetRPortColour:
-	move.l SpriteEditor_Window(a0),a0
+	move.l TileEditor_Window(a0),a0
 	move.l wd_RPort(a0),a1
 	move.l GfxBase,a6
 	jmp _LVOSetAPen(a6)	
 ****************
 * presumes correct pen is set
-* a0 - ptr to SpriteEditor
+* a0 - ptr to TileEditor
 * d0 - column
 * d1 - row
 DrawPx:
@@ -550,7 +550,7 @@ DrawPx:
 	add.w #PX_WIDTH-1,d2
 	move.w d1,d3
 	add.w #PX_HEIGHT-1,d3
-	move.l SpriteEditor_Window(a0),a0
+	move.l TileEditor_Window(a0),a0
 	move.l wd_RPort(a0),a1
 	move.l GfxBase,a6
 	jsr _LVORectFill(a6)
@@ -561,7 +561,7 @@ DrawPx:
 DrawImage:
 	movem.l d2/a2-a3,-(sp)
 	move.l a0,a2							; a2 = TilesetEditor
-	move.l SpriteEditor_Data(a0),a3
+	move.l TileEditor_Data(a0),a3
 	clr.w d2								; row = 0
 .loop:
 	move.l a2,a0							; a0 = TilesetEditor
@@ -608,20 +608,20 @@ DrawRow:
 	movem.l (sp)+,d2-d5/a2
 	rts
 ****************
-* a0 - ptr to SpriteEditor
+* a0 - ptr to TileEditor
 * d0 - column
 * d1 - row
 DrawPxData:
-	lea.l SpriteEditor_Image(a0),a1
+	lea.l TileEditor_Image(a0),a1
 	move.l ig_ImageData(a1),a1
 	movem.l d0-d1/a0,-(sp)
 	bsr.s DrawIntoBuffer
 	movem.l (sp)+,d0-d1/a0
-	move.l SpriteEditor_Data(a0),a1
+	move.l TileEditor_Data(a0),a1
 	bra.s DrawIntoBuffer
 	rts
 ****************
-* a0 - ptr to SpriteEditor
+* a0 - ptr to TileEditor
 * a1 - buffer
 * d0 - column
 * d1 - row
@@ -634,7 +634,7 @@ DrawIntoBuffer:
 	and.w #$0007,d0							; d0 = bit to set
 	neg.w d0
 	add.w #7,d0
-	move.b SpriteEditor_Pen(a0),d2
+	move.b TileEditor_Pen(a0),d2
 	moveq #1,d3								; 2 bitplanes
 .loop:
 	btst #0,d2
@@ -650,46 +650,46 @@ DrawIntoBuffer:
 	movem.l (sp)+,d2-d3
 	rts
 ****************
-* a0 - ptr to SpriteEditor
-CloseSpriteEditor:
+* a0 - ptr to TileEditor
+CloseTileEditor:
 .closeWindow:
 	move.l a0,-(sp)
-	move.l SpriteEditor_Window(a0),a0
+	move.l TileEditor_Window(a0),a0
 	move.l IntuiBase,a6
 	jsr _LVOCloseWindow(a6)
 .freeEditor:
-	move.l (sp)+,a1							; a1 = sprite editor
-	move.l #SPRITEEDITOR_SIZEOF,d0
+	move.l (sp)+,a1							; a1 = tile editor
+	move.l #TILEEDITOR_SIZEOF,d0
 	move.l 4.w,a6
 	jmp _LVOFreeMem(a6)
 
-	XDEF CloseSpriteEditor
+	XDEF CloseTileEditor
 ****************
-* Called during construction to set the sprite editor num
-* a0 - ptr to SpriteEditor
-* d0 - sprite editor num
-SetSpriteEditorNum:
+* Called during construction to set the tile editor num
+* a0 - ptr to TileEditor
+* d0 - tile editor num
+SetTileEditorNum:
 	move.l a2,-(sp)
-	move.l a0,a2							; a2 = SpriteEditor
+	move.l a0,a2							; a2 = TileEditor
 	move.w d0,-(sp)
 	bsr.s SetTilesetEditorData
-	move.l a2,a0							; a0 = SpriteEditor
-	move.w (sp)+,d0							; d0 = sprite editor num
-	move.w d0,SpriteEditor_Num(a2)
+	move.l a2,a0							; a0 = TileEditor
+	move.w (sp)+,d0							; d0 = tile editor num
+	move.w d0,TileEditor_Num(a2)
 	lea.l Project+Project_TilesetNames,a0
 	move.w d0,d1							; d1 = Tileset number
 	lsl.w #4,d1								; d1 = Offset into tileset names
 	lea.l (a0,d1),a0						; a0 = ptr to name
-	move.l a0,SpriteEditor_NameSI+si_Buffer(a2)	
+	move.l a0,TileEditor_NameSI+si_Buffer(a2)	
 	lea.l TensTable,a0
 	move.b (a0,d0),d1						; d1 = tens digit
 	lsr.b #4,d1
 	add.b #'0',d1							; d1 = tens digit ASCII
-	move.b d1,SpriteEditor_Title+7(a2)
+	move.b d1,TileEditor_Title+8(a2)
 	lea.l OnesTable,a0
 	move.b (a0,d0),d1
 	add.b #'0',d1							; d0 = ones digit ASCII
-	move.b d1,SpriteEditor_Title+8(a2)
+	move.b d1,TileEditor_Title+9(a2)
 	move.l (sp)+,a2
 	rts
 *******************
@@ -700,29 +700,29 @@ SetTilesetEditorData:
 	lsl.w #4,d0
 	lea.l Project+Project_TilesetImgs,a1
 	lea.l (a1,d0),a1
-	move.l a1,SpriteEditor_Data(a0)
+	move.l a1,TileEditor_Data(a0)
 	rts
 *******************
 * a0 - TilesetEditor
 LoadImageData:
-	move.l SpriteEditor_Image+ig_ImageData(a0),a1	; a1 = dest
-	move.l SpriteEditor_Data(a0),a0					; a0 = source
+	move.l TileEditor_Image+ig_ImageData(a0),a1	; a1 = dest
+	move.l TileEditor_Data(a0),a0					; a0 = source
 	move.l #64,d0									; d0 = length
 	move.l 4.w,a6									; exec
 	jmp _LVOCopyMem(a6)
 
 	SECTION MyData,DATA
-******** Sprite window
+******** Tile window
 **** Constants
 
-SPR_WIDTH	=160
-SPR_HEIGHT	=192
+TILE_WIDTH	=160
+TILE_HEIGHT	=192
 
-SPRNAME_WIDTH   =88
-SPRNAME_HEIGHT  =10
+TILENAME_WIDTH   =88
+TILENAME_HEIGHT  =10
 
-SPRNUM_WIDTH	=24
-SPRNUM_HEIGHT	=10
+TILENUM_WIDTH	=24
+TILENUM_HEIGHT	=10
 
 PAL_WIDTH	=16
 PAL_HEIGHT	=16
@@ -773,12 +773,12 @@ PASSABLE_WIDTH	=8
 PASSABLE_HEIGHT	=8
 
 **** NewWindow
-* when a new sprite editor is created, this struct is updated to refer
+* when a new tile editor is created, this struct is updated to refer
 * to the correct data
 	EVEN
-SprNewWin:
+TileNewWin:
 	dc.w 20,20										; left,top
-	dc.w SPR_WIDTH,SPR_HEIGHT						; width, height
+	dc.w TILE_WIDTH,TILE_HEIGHT						; width, height
 	dc.b -1,-1										; default pens
 	dc.l CLOSEWINDOW!GADGETUP!GADGETDOWN!MOUSEBUTTONS!MOUSEMOVE
 	dc.l WINDOWCLOSE!WINDOWDEPTH!WINDOWDRAG
@@ -787,38 +787,38 @@ SprNewWin:
 	dc.l 0											; PATCH title
 	dc.l 0											; PATCH screen ptr
 	dc.l 0											; no bitmap
-	dc.w SPR_WIDTH,SPR_HEIGHT						; min width/height
-	dc.w SPR_WIDTH,SPR_HEIGHT						; max width/height
+	dc.w TILE_WIDTH,TILE_HEIGHT						; min width/height
+	dc.w TILE_WIDTH,TILE_HEIGHT						; max width/height
 	dc.w CUSTOMSCREEN								; type
 
 **** Template
-* When a new sprite editor is created, memory for the following is
+* When a new tile editor is created, memory for the following is
 * allocated and this is copied into it. The base pointer is then
 * added onto any relative "pointer"s in the struct
 
 	EVEN
-SprEditorTemplate:
+TileEditorTemplate:
 	dc.l 0								; next
 	dc.l 0								; prev
 	dc.l 0								; window
-	dc.b "Sprite xx",0,0				; title
+	dc.b "Tileset xx",0					; title
 	dc.b 0								; quit
 .numGG:
-	dc.l SpriteEditor_NameGG			; next gadget
+	dc.l TileEditor_NameGG			; next gadget
 	dc.w 5,4							; left, top
-	dc.w SPRNUM_WIDTH,SPRNUM_HEIGHT
+	dc.w TILENUM_WIDTH,TILENUM_HEIGHT
 	dc.w GADGHCOMP
     dc.w GACT_STRINGRIGHT!GACT_LONGINT
 	dc.w GTYP_STRGADGET
-	dc.l SprNumBorder	
+	dc.l TileNumBorder
 	dc.l 0								; no selected render
 	dc.l 0								; no text
 	dc.l 0								; no mutual exclude
-	dc.l SpriteEditor_NumSI
+	dc.l TileEditor_NumSI
 	dc.w 0								; no ID
 	dc.l 0								; no special user data
 .numSI:
-	dc.l SpriteEditor_NumBuf
+	dc.l TileEditor_NumBuf
 	dc.l 0								; no undo buffer
 	dc.w 0								; buffer pos
 	dc.w 4								; max chars + NULL
@@ -833,17 +833,17 @@ SprEditorTemplate:
 .numBuf:
 	dc.b "0",0,0,0
 .nameGG:
-	dc.l SpriteEditor_PalGGs			; next gadget
+	dc.l TileEditor_PalGGs			; next gadget
 	dc.w 35,4							; left, top
-	dc.w SPRNAME_WIDTH,SPRNAME_HEIGHT
+	dc.w TILENAME_WIDTH,TILENAME_HEIGHT
 	dc.w GADGHCOMP
     dc.w GACT_RELVERIFY					; activation
 	dc.w GTYP_STRGADGET
-	dc.l SprNameBorder
+	dc.l TileNameBorder
 	dc.l 0								; no selected render
 	dc.l 0								; no text
 	dc.l 0								; no mutual exclude
-	dc.l SpriteEditor_NameSI
+	dc.l TileEditor_NameSI
 	dc.w NAME_ID
 	dc.l 0								; no special user data
 .nameSI:
@@ -860,7 +860,7 @@ SprEditorTemplate:
 	dc.l 0								; long int
 	dc.l 0								; default key map
 .palGGs0:
-	dc.l SpriteEditor_PalGGs+gg_SIZEOF	; next gadget
+	dc.l TileEditor_PalGGs+gg_SIZEOF	; next gadget
 	dc.w PAL_LEFT,PAL_TOP				; left, top
 	dc.w PAL_WIDTH,PAL_HEIGHT
 	dc.w GFLG_GADGHBOX
@@ -874,7 +874,7 @@ SprEditorTemplate:
 	dc.w 3								; pen colour 3
 	dc.l 0								; no special user data
 .palGGs1:
-	dc.l SpriteEditor_PalGGs+gg_SIZEOF*2; next gadget
+	dc.l TileEditor_PalGGs+gg_SIZEOF*2; next gadget
 	dc.w PAL_LEFT,PAL_TOP+PAL_HEIGHT	; left, top
 	dc.w PAL_WIDTH,PAL_HEIGHT
 	dc.w GFLG_GADGHBOX
@@ -888,7 +888,7 @@ SprEditorTemplate:
 	dc.w 2								; pen colour 2
 	dc.l 0								; no special user data
 .palGGs2:
-	dc.l SpriteEditor_PalGGs+(gg_SIZEOF*3); next gadget
+	dc.l TileEditor_PalGGs+(gg_SIZEOF*3); next gadget
 	dc.w PAL_LEFT,PAL_TOP+(PAL_HEIGHT*2); left, top
 	dc.w PAL_WIDTH,PAL_HEIGHT
 	dc.w GFLG_GADGHBOX
@@ -902,7 +902,7 @@ SprEditorTemplate:
 	dc.w 1								; pen colour 1
 	dc.l 0								; no special user data
 .palGGs3:
-	dc.l SpriteEditor_PrevGG		; next gadget
+	dc.l TileEditor_PrevGG		; next gadget
 	dc.w PAL_LEFT,PAL_TOP+(PAL_HEIGHT*3); left, top
 	dc.w PAL_WIDTH,PAL_HEIGHT
 	dc.w GFLG_GADGHBOX
@@ -916,7 +916,7 @@ SprEditorTemplate:
 	dc.w 0								; pen colour 0
 	dc.l 0								; no special user data
 .prevTileGG:
-	dc.l SpriteEditor_NextGG			; next gadget
+	dc.l TileEditor_NextGG			; next gadget
 	dc.w PREV_LEFT,PREV_TOP
 	dc.w PREV_WIDTH,PREV_HEIGHT
 	dc.w GFLG_GADGHCOMP
@@ -930,7 +930,7 @@ SprEditorTemplate:
 	dc.w PREV_ID
 	dc.l 0
 .nextTileGG:
-	dc.l SpriteEditor_PassableGG
+	dc.l TileEditor_PassableGG
 	dc.w NEXT_LEFT,NEXT_TOP
 	dc.w NEXT_WIDTH,NEXT_HEIGHT
 	dc.w GFLG_GADGHCOMP
@@ -975,55 +975,55 @@ SprEditorTemplate:
 .tsnum:
 	dc.w 0
 
-SprEditPatchLocs:
-	dc.l SpriteEditor_NumGG+gg_NextGadget
-	dc.l SpriteEditor_NumGG+gg_SpecialInfo
-	dc.l SpriteEditor_NumSI+si_Buffer
-	dc.l SpriteEditor_NameGG+gg_NextGadget
-	dc.l SpriteEditor_NameGG+gg_SpecialInfo
-	dc.l SpriteEditor_PalGGs+gg_NextGadget
-	dc.l SpriteEditor_PalGGs+gg_SIZEOF+gg_NextGadget
-	dc.l SpriteEditor_PalGGs+(gg_SIZEOF*2)+gg_NextGadget
-	dc.l SpriteEditor_PalGGs+(gg_SIZEOF*3)+gg_NextGadget
-	dc.l SpriteEditor_PrevGG+gg_NextGadget
-	dc.l SpriteEditor_NextGG+gg_NextGadget
-	XDEF SprEditorTemplate
+TileEditPatchLocs:
+	dc.l TileEditor_NumGG+gg_NextGadget
+	dc.l TileEditor_NumGG+gg_SpecialInfo
+	dc.l TileEditor_NumSI+si_Buffer
+	dc.l TileEditor_NameGG+gg_NextGadget
+	dc.l TileEditor_NameGG+gg_SpecialInfo
+	dc.l TileEditor_PalGGs+gg_NextGadget
+	dc.l TileEditor_PalGGs+gg_SIZEOF+gg_NextGadget
+	dc.l TileEditor_PalGGs+(gg_SIZEOF*2)+gg_NextGadget
+	dc.l TileEditor_PalGGs+(gg_SIZEOF*3)+gg_NextGadget
+	dc.l TileEditor_PrevGG+gg_NextGadget
+	dc.l TileEditor_NextGG+gg_NextGadget
+	XDEF TileEditorTemplate
 
-** SprName
-
-	EVEN
-SprNameBorderPts:
-	dc.w 0,0
-	dc.w SPRNAME_WIDTH+3,0
-	dc.w SPRNAME_WIDTH+3,SPRNAME_HEIGHT+3
-	dc.w 0,SPRNAME_HEIGHT+3
-	dc.w 0,0
+** TileName
 
 	EVEN
-SprNameBorder:
+TileNameBorderPts:
+	dc.w 0,0
+	dc.w TILENAME_WIDTH+3,0
+	dc.w TILENAME_WIDTH+3,TILENAME_HEIGHT+3
+	dc.w 0,TILENAME_HEIGHT+3
+	dc.w 0,0
+
+	EVEN
+TileNameBorder:
 	dc.w -2,-2
 	dc.b 1,0
 	dc.b 0
 	dc.b 5
-	dc.l SprNameBorderPts
+	dc.l TileNameBorderPts
 	dc.l 0
 
-** SprNum
+** TileNum
 
 	EVEN
-SprNumBorderPts:
+TileNumBorderPts:
 	dc.w 0,0
-	dc.w SPRNUM_WIDTH+3,0
-	dc.w SPRNUM_WIDTH+3,SPRNUM_HEIGHT+3
-	dc.w 0,SPRNUM_HEIGHT+3
+	dc.w TILENUM_WIDTH+3,0
+	dc.w TILENUM_WIDTH+3,TILENUM_HEIGHT+3
+	dc.w 0,TILENUM_HEIGHT+3
 	dc.w 0,0
 
-SprNumBorder:
+TileNumBorder:
 	dc.w -2,-2			; left, top
 	dc.b 1,0			; pens
 	dc.b 0				; JAM1
 	dc.b 5				; 5 points
-	dc.l SprNumBorderPts
+	dc.l TileNumBorderPts
 	dc.l 0				; no next
 
 ** Pal
@@ -1044,7 +1044,7 @@ PalBorder:
 	dc.l PalBorderPts
 	dc.l 0
 
-	XDEF SprNewWin
+	XDEF TileNewWin
 
 ** Px
 

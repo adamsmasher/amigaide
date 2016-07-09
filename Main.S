@@ -11,8 +11,8 @@
 
 	INCLUDE "globals.i"
 	INCLUDE "Project.i"
-	INCLUDE "SpriteEditor.i"
-	INCLUDE "SpriteEditor_intf.i"
+	INCLUDE "TileEditor.i"
+	INCLUDE "TileEditor_intf.i"
 	INCLUDE "TilesetBrowser.i"
 	INCLUDE "TilesetBrowser_intf.i"
 
@@ -22,7 +22,7 @@
 ScrP:			ds.l 1
 ProjWinP:		ds.l 1
 SignalMask:		ds.l 1
-FirstSprEditor:	ds.l 1
+FirstTileEditor:	ds.l 1
 TilesetBrowser:	ds.l TILESETBROWSER_SIZEOF
 BorderTop:		ds.w 1
 BorderLeft:		ds.b 1
@@ -215,7 +215,7 @@ Main:
 	bsr.s CreateProject				; if we couldn't open it, create it
 	beq.w .done
 .initGlobals:
-	clr.l FirstSprEditor
+	clr.l FirstTileEditor
 .openScreen:
 	move.l IntuiBase,a6
 	lea.l ScrDef,a0
@@ -250,7 +250,7 @@ Main:
 	bsr.w AddWinToSigMask
 ; jump into the main loop
 	bsr.w MainLoop
-	bsr.w CloseSpriteEditors
+	bsr.w CloseTileEditors
 .detachMenu:
 	move.l ProjWinP,a0
 	move.l IntuiBase,a6
@@ -271,9 +271,9 @@ SetupScr:
 	bsr.w InsScrP2WinDefs
 	bsr.w AddBor2NewWins
 ; TODO: put me in a function
-	lea.l SprEditorTemplate,a0
-	lea.l SpriteEditor_NumGG(a0),a1
-	lea.l SpriteEditor_NameGG(a0),a0
+	lea.l TileEditorTemplate,a0
+	lea.l TileEditor_NumGG(a0),a1
+	lea.l TileEditor_NameGG(a0),a0
 	move.w BorderTop,d0
 	add.w d0,gg_TopEdge(a0)
 	add.w d0,gg_TopEdge(a1)
@@ -324,7 +324,7 @@ InsScrP2WinDefs:
 	rts
 ****
 AddBor2NewWins:
-	lea.l SprNewWin,a0
+	lea.l TileNewWin,a0
 	bsr.s AddBor2NewWin
 	rts
 ****
@@ -384,7 +384,7 @@ MsgLoop:
 	move.l d0,-(sp)
 	bsr.s ChkForProjMsgs
 	move.l (sp),d0				; d0=Signals
-	bsr.s ChkForSprEditorMsgs
+	bsr.s ChkForTileEditorMsgs
 	move.l (sp)+,d0				; d0=Signals
 	bsr.s ChkForBrowserMsgs
 	rts
@@ -418,20 +418,20 @@ ChkForBrowserMsgs:
 	rts
 ****
 * d0 - bitmask of signals that occurred
-ChkForSprEditorMsgs:
+ChkForTileEditorMsgs:
 	movem.l d2/a2,-(sp)
 	move.l d0,d2							; d2 = sig set
-	move.l FirstSprEditor,a2
+	move.l FirstTileEditor,a2
 	bra.s .test
 .loop:
-	move.l SpriteEditor_Window(a2),a0
+	move.l TileEditor_Window(a2),a0
 	move.l d2,d0
 	bsr.s ChkForWinMsgs
 	beq.s .next
 	move.l a2,a0
-	bsr.w HandleSprEditorMsgs
+	bsr.w HandleTileEditorMsgs
 .next:
-	move.l SpriteEditor_Next(a2),a2
+	move.l TileEditor_Next(a2),a2
 .test:
 	cmp.l #0,a2
 	bne.s .loop
@@ -512,11 +512,11 @@ HandleBrowserMsgs:
 	move.l (sp)+,a2
 	rts
 ****
-* a0 - contains ptr to sprite editor
-HandleSprEditorMsgs:
+* a0 - contains ptr to tile editor
+HandleTileEditorMsgs:
 	movem.l d2/a2-a3,-(sp)
-	move.l a0,a3						; a3=SpriteEditor
-	move.l SpriteEditor_Window(a0),a0
+	move.l a0,a3						; a3=TileEditor
+	move.l TileEditor_Window(a0),a0
 	move.l wd_UserPort(a0),a2
 .loop:
 	move.l a2,a0						; a0=UserPort
@@ -538,55 +538,55 @@ HandleSprEditorMsgs:
 	beq.s .onMouseMove
 	bra.s .loop
 .closeWindow:
-	move.l a3,a0						; a0 = spr editor
-	bsr.s RemoveSpriteEditor
-	move.l SpriteEditor_Window(a3),a0	; a0 = spr editor window
+	move.l a3,a0						; a0 = tile editor
+	bsr.s RemoveTileEditor
+	move.l TileEditor_Window(a3),a0	; a0 = tile editor window
 	bsr.w RemWinFromSigMask
-	move.l a3,a0						; a0 = spr editor once more
-	jsr CloseSpriteEditor
+	move.l a3,a0						; a0 = tile editor once more
+	jsr CloseTileEditor
 	bra.s .loop
 .onGadgetUp:
 	move.l im_IAddress(a0),a1			; a1 = gadget clicked
-	move.l a3,a0						; a0 = sprite editor
-	jsr SpriteEditorGadgetUp
+	move.l a3,a0						; a0 = tile editor
+	jsr TileEditorGadgetUp
 	bra.s .loop
 .onGadgetDown:
 	move.l im_IAddress(a0),a1
 	move.l a3,a0
-	jsr SpriteEditorGadgetDown
+	jsr TileEditorGadgetDown
 	bra.s .loop
 .onMouseButtons:
 	move.w im_MouseX(a0),d0
 	move.w im_MouseY(a0),d1
 	move.w im_Code(a0),d2
 	move.l a3,a0
-	jsr SpriteEditorMouseButtons
+	jsr TileEditorMouseButtons
 	bra.w .loop
 .onMouseMove:
 	move.w im_MouseX(a0),d0
 	move.w im_MouseY(a0),d1
 	move.l a3,a0
-	jsr SpriteEditorMouseMove
+	jsr TileEditorMouseMove
 	bra.w .loop
 .done:
 	movem.l (sp)+,d2/a2-a3
 	rts
 ****
-* a0 - sprite editor to be removed
-RemoveSpriteEditor:
+* a0 - tile editor to be removed
+RemoveTileEditor:
 .prev:
-	tst.l SpriteEditor_Prev(a0)
+	tst.l TileEditor_Prev(a0)
 	beq.s .noPrev
-	move.l SpriteEditor_Prev(a0),a1
-	move.l SpriteEditor_Next(a0),SpriteEditor_Next(a1)	; prev.next=dead.next
+	move.l TileEditor_Prev(a0),a1
+	move.l TileEditor_Next(a0),TileEditor_Next(a1)	; prev.next=dead.next
 	bra.s .next
 .noPrev:
-	move.l SpriteEditor_Next(a0),FirstSprEditor			; first = dead.next
+	move.l TileEditor_Next(a0),FirstTileEditor			; first = dead.next
 .next:
-	tst.l SpriteEditor_Next(a0)
+	tst.l TileEditor_Next(a0)
 	beq.s .done
-	move.l SpriteEditor_Next(a0),a1
-	move.l SpriteEditor_Prev(a0),SpriteEditor_Prev(a1)	; next.prev=dead.prev
+	move.l TileEditor_Next(a0),a1
+	move.l TileEditor_Prev(a0),TileEditor_Prev(a1)	; next.prev=dead.prev
 .done:
 	rts
 ****
@@ -627,19 +627,19 @@ QuitItemHandler:
 ****
 * d0 - tileset to spawn for
 SpawnTilesetEditor:
-	jsr NewSpriteEditor
+	jsr NewTileEditor
 	tst.l d0
 	beq.s .done
 .install:
 	move.l d0,a0								; a0 = new
-	move.l FirstSprEditor,SpriteEditor_Next(a0)
-	tst.l FirstSprEditor						; was there an oldfirst?
+	move.l FirstTileEditor,TileEditor_Next(a0)
+	tst.l FirstTileEditor						; was there an oldfirst?
 	beq.s .noPrev
-	move.l FirstSprEditor,a1
-	move.l a0,SpriteEditor_Prev(a1)				; oldfirst.prev = new
+	move.l FirstTileEditor,a1
+	move.l a0,TileEditor_Prev(a1)				; oldfirst.prev = new
 .noPrev:
-	move.l a0,FirstSprEditor					; first = new
-	move.l SpriteEditor_Window(a0),a0
+	move.l a0,FirstTileEditor					; first = new
+	move.l TileEditor_Window(a0),a0
 	bsr.w AddWinToSigMask
 .done:
 	rts
@@ -668,14 +668,14 @@ OpenTilesetItemHandler:
 	move.l IntuiBase,a6
 	jmp _LVOActivateWindow(a6)
 ****
-CloseSpriteEditors:
+CloseTileEditors:
 	move.l d2,-(sp)
-	move.l FirstSprEditor,d2
+	move.l FirstTileEditor,d2
 	bra.s .test
 .loop:
 	move.l d2,a0
-	move.l SpriteEditor_Next(a0),d2
-	bsr.w CloseSpriteEditor
+	move.l TileEditor_Next(a0),d2
+	bsr.w CloseTileEditor
 .test:
 	tst.l d2
 	bne.s .loop
@@ -962,5 +962,5 @@ TilesetsMenuHandlers:
 ******** NewWindow info
 
 AllNewWins:
-	dc.l SprNewWin,ProjNewWin,BrowserNewWin
+	dc.l TileNewWin,ProjNewWin,BrowserNewWin
 NUM_OF_NEWWINS	=3
