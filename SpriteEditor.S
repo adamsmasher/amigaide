@@ -366,11 +366,47 @@ PrevTile:
 * a0 - ptr to TilesetEditor
 * d0 - new TileNum
 UpdateTileNum:
+	move.w d0,-(sp)
 	move.l a0,-(sp)
-	; TODO: redraw the sprite number gadget
+.removeGadget:
+	lea.l SpriteEditor_NumGG(a0),a1
+	move.l SpriteEditor_Window(a0),a0
+	move.l IntuiBase,a6
+	jsr _LVORemoveGadget(a6)
 .updateNum:
+	move.l (sp),a0									; a0 = TilesetEditor
+	move.w 4(sp),d0									; d0 = new Tilenum
 	move.l d0,SpriteEditor_NumSI+si_LongInt(a0)
+	move.l SpriteEditor_NumSI+si_Buffer(a0),a0
+	lea.l TensTable,a1
+	move.b (a1,d0),d1								; d1 = tens digit
+	lsr.b #4,d1
+	beq.s .writeOnesDigit
+	add.b #'0',d1									; d1 = tens digit ASCII
+	move.b d1,(a0)+									; write tens digit
+.writeOnesDigit
+	lea.l OnesTable,a1
+	move.b (a1,d0),d1								; d1 = ones digit
+	add.b #'0',d1									; d1 = ones digit ASCII
+	move.b d1,(a0)+									; write ones digit
+	clr.b (a0)										; write terminator
+.addGadget:
+	move.l (sp),a0									; a0 = Tileset Editor
+	lea.l SpriteEditor_NumGG(a0),a1
+	move.l SpriteEditor_Window(a0),a0
+	move.w #-1,d0									; position = EOL
+	move.l IntuiBase,a6
+	jsr _LVOAddGadget(a6)
+.refreshGadget:
+	move.l (sp),a0									; a0 = TilesetEditor
+	move.l SpriteEditor_Window(a0),a1
+	lea.l SpriteEditor_NumGG(a0),a0
+	move.l #0,a2									; no requester
+	move.l IntuiBase,a6
+	jsr _LVORefreshGadgets(a6)
 .updateData:
+	move.l (sp),a0									; a0 = TilesetEditor
+	move.w 4(sp),d0									; d0 = New Num
 	move.w SpriteEditor_Num(a0),d1
 	lsl.w #8,d1										; 4096 bytes per set
 	lsl.w #4,d1
@@ -380,10 +416,11 @@ UpdateTileNum:
 	lea.l (a1,d0),a1								; get tile base
 	move.l a1,SpriteEditor_Data(a0)
 	bsr.w LoadImageData
-	move.l (sp),a0					; a0 = TilesetEditor
+	move.l (sp),a0									; a0 = TilesetEditor
 	bsr.w DrawImage
-	move.l (sp)+,a0					; a0 = TilesetEditor
+	move.l (sp)+,a0									; a0 = TilesetEditor
 	bsr.w DrawPreview
+	addq.l #2,sp									; pop off new num
 	rts
 ****************
 * a0 - ptr to SpriteEditor
