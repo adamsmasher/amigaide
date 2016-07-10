@@ -251,6 +251,7 @@ Main:
 ; jump into the main loop
 	bsr.w MainLoop
 	bsr.w CloseTileEditors
+	bsr.w CloseTilesetBrowserIfOpen
 .detachMenu:
 	move.l ProjWinP,a0
 	move.l IntuiBase,a6
@@ -682,6 +683,15 @@ CloseTileEditors:
 	move.l (sp)+,d2
 	rts
 ****************
+CloseTilesetBrowserIfOpen:
+	move.l TilesetBrowser+TilesetBrowser_Window,d0
+	tst.l d0
+	beq.s .done
+	move.l d0,a0
+	move.l IntuiBase,a6
+	jmp _LVOCloseWindow(a6)
+.done:
+	rts
 
 	SECTION MyData,DATA
 
