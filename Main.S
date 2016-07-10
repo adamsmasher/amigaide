@@ -19,17 +19,17 @@
 	jmp Start
 
 	SECTION MainVars,BSS
-ScrP:			ds.l 1
-ProjWinP:		ds.l 1
-SignalMask:		ds.l 1
+ScrP:				ds.l 1
+ProjWinP:			ds.l 1
+SignalMask:			ds.l 1
 FirstTileEditor:	ds.l 1
-TilesetBrowser:	ds.l TILESETBROWSER_SIZEOF
-BorderTop:		ds.w 1
-BorderLeft:		ds.b 1
-BorderRight:	ds.b 1
-BorderBottom:	ds.b 1
-QuitFlag:		ds.b 1
-ProjectFilename:ds.b 108
+TilesetBrowser:		ds.l TILESETBROWSER_SIZEOF
+BorderTop:			ds.w 1
+BorderLeft:			ds.b 1
+BorderRight:		ds.b 1
+BorderBottom:		ds.b 1
+QuitFlag:			ds.b 1
+ProjectFilename:	ds.b 108
 
 ****************
 
