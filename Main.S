@@ -708,7 +708,7 @@ Palette:
 	dc.w 15,15,15			; white
 
 Title:
-	dc.b "FracIDE",0
+	dc.b "FracIDE Tile Editor",0
 
 SCR_WIDTH	=320
 SCR_HEIGHT	=256
