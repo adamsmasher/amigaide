@@ -130,11 +130,12 @@ ValidateHeader:
 	move.l #4,d3
 	move.l DosBase,a6
 	jsr _LVORead(a6)
-	cmp.l #'FRAC',(sp)
-	bne.s .done
 	cmp.l #4,d0
+	bne.s .done
+	cmp.l #'FRAC',(sp)
 .done:
-	addq.l #4,sp
+	; we use ADDA specifically to avoid setting flags
+	adda.l #4,sp
 	movem.l (sp)+,d2-d3
 	rts
 ****
@@ -150,15 +151,22 @@ LoadProject:
 	beq.s .done
 	move.l d0,d4				; d4 = file
 	bsr.w ValidateHeader
-	bne.s .done
+	bne.s .closeFileOnFailure
 	move.l d4,d1				; d1 = file
 	move.l #Project,d2
 	move.l #PROJECT_SIZEOF,d3
 	move.l DosBase,a6
 	jsr _LVORead(a6)
-	move.l d4,d1
+.closeFile:
+	move.l d4,d1				; d1 = file
 	move.l DosBase,a6
 	jsr _LVOClose(a6)
+	bra.s .done
+.closeFileOnFailure:
+	move.l d4,d1				; d1 = ile
+	move.l DosBase,a6
+	jsr _LVOClose(a6)
+	ori.b #$04,ccr				; set zero!
 .done:
 	movem.l (sp)+,d2-d4
 	rts
