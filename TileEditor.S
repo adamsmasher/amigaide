@@ -652,8 +652,8 @@ DrawIntoBuffer:
 ****************
 * a0 - ptr to TileEditor
 CloseTileEditor:
-.closeWindow:
-	move.l a0,-(sp)
+.closeWindow
+	move.l a0,-(sp)							; save tile editor
 	move.l TileEditor_Window(a0),a0
 	move.l IntuiBase,a6
 	jsr _LVOCloseWindow(a6)
@@ -661,7 +661,9 @@ CloseTileEditor:
 	move.l (sp)+,a1							; a1 = tile editor
 	move.l #TILEEDITOR_SIZEOF,d0
 	move.l 4.w,a6
-	jmp _LVOFreeMem(a6)
+	jsr _LVOFreeMem(a6)
+.done:
+	rts
 
 	XDEF CloseTileEditor
 ****************
@@ -804,7 +806,7 @@ TileEditorTemplate:
 	dc.b "Tileset xx",0					; title
 	dc.b 0								; quit
 .numGG:
-	dc.l TileEditor_NameGG			; next gadget
+	dc.l TileEditor_NameGG				; next gadget
 	dc.w 5,4							; left, top
 	dc.w TILENUM_WIDTH,TILENUM_HEIGHT
 	dc.w GADGHCOMP
@@ -874,7 +876,7 @@ TileEditorTemplate:
 	dc.w 3								; pen colour 3
 	dc.l 0								; no special user data
 .palGGs1:
-	dc.l TileEditor_PalGGs+gg_SIZEOF*2; next gadget
+	dc.l TileEditor_PalGGs+gg_SIZEOF*2	; next gadget
 	dc.w PAL_LEFT,PAL_TOP+PAL_HEIGHT	; left, top
 	dc.w PAL_WIDTH,PAL_HEIGHT
 	dc.w GFLG_GADGHBOX
@@ -916,7 +918,7 @@ TileEditorTemplate:
 	dc.w 0								; pen colour 0
 	dc.l 0								; no special user data
 .prevTileGG:
-	dc.l TileEditor_NextGG			; next gadget
+	dc.l TileEditor_NextGG				; next gadget
 	dc.w PREV_LEFT,PREV_TOP
 	dc.w PREV_WIDTH,PREV_HEIGHT
 	dc.w GFLG_GADGHCOMP
@@ -963,7 +965,6 @@ TileEditorTemplate:
 	dc.b 0
 .image:
 	dc.w 0,0							; left, top
-; TODO: this varies
 	dc.w 16,16							; width, height
 	dc.w 2								; depth
 	dc.l OnscreenImage					; image data

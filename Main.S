@@ -320,7 +320,7 @@ Main:
 	move.l IntuiBase,a6
 	lea.l ScrDef,a0
 	jsr _LVOOpenScreen(a6)
-	tst.l d0		; success?
+	tst.l d0						; success?
 	beq.w .done
 	move.l d0,ScrP
 ; now that the screen is opened, set it up and install it into the win cfs
