@@ -297,6 +297,98 @@ SaveTileset:
 	movem.l (sp)+,d2-d4
 	rts
 ****
+* Reverts a Tileset from Disk
+* d0 - number of the tileset to save
+RevertTileset:
+	movem.l d2-d4,-(sp)
+	move.w d0,-(sp)
+.openFile:
+	move.l #ProjectFilename,d1
+	move.l #MODE_OLDFILE,d2
+	move.l DosBase,a6
+	jsr _LVOOpen(a6)
+	tst.l d0
+	beq.w .done
+	move.l d0,d4								; d4 = File
+.seekToCnt:
+	move.l d4,d1								; d1 = File
+	move.l #4,d2								; skip header
+	move.l #OFFSET_BEGINNING,d3
+	move.l DosBase,a6
+	jsr _LVOSeek(a6)
+.readCount:
+	move.l d4,d1								; d1 = File
+	move.l #Project+Project_TilesetCnt,d2		; d2 = ptr to Count
+	move.l #2,d3								; d3 = two bytes
+	move.l DosBase,a6
+	jsr _LVORead(a6)
+.seekToName:
+	move.l d4,d1								; d1 = File
+	move.w (sp),d2								; d2 = tileset to write
+	and.l #$0000FFFF,d2							; cast to long
+	lsl.l #4,d2									; get offset
+	move.l #OFFSET_CURRENT,d3
+	move.l DosBase,a6
+	jsr _LVOSeek(a6)
+.readName:
+	move.l d4,d1								; d1 = File
+	move.w (sp),d2								; d0 = tileset to write
+	lsl.l #4,d2									; get offset
+	lea.l Project+Project_TilesetNames,a0
+	lea.l (a0,d2),a0							; a0 = address of name
+	move.l a0,d2								; d2 = address of name
+	move.l #16,d3								; 16 bytes
+	move.l DosBase,a6
+	jsr _LVORead(a6)
+.seekToTiles:
+	move.l d4,d1								; d1 = file
+	move.w (sp),d2								; d2 = tileset to write
+	and.l #$0000FFFF,d2							; cast to long
+	lsl.l #8,d2									; get offset
+	lsl.l #4,d2
+	add.l #(4+Project_TilesetImgs),d2			; get offset into file
+	move.l #OFFSET_BEGINNING,d3
+	move.l DosBase,a6
+	jsr _LVOSeek(a6)
+.readTiles:
+	move.l d4,d1								; d1 = File
+	move.w (sp),d2								; d0 = tileset to write
+	lsl.l #8,d2									; get offset
+	lsl.l #4,d2
+	lea.l Project+Project_TilesetImgs,a0
+	lea.l (a0,d2),a0							; a0 = address of name
+	move.l a0,d2								; d2 = address of name
+	move.l #4096,d3								; 4096 bytes
+	move.l DosBase,a6
+	jsr _LVORead(a6)
+.seekToPassableInfo:
+	move.l d4,d1								; d1 = file
+	move.w (sp),d2								; d2 = tileset to write
+	and.l #$0000FFFF,d2							; cast to long
+	lsl.l #6,d2									; get offset
+	add.l #(4+Project_TilesetPassable),d2		; get offset into file
+	move.l #OFFSET_BEGINNING,d3
+	move.l DosBase,a6
+	jsr _LVOSeek(a6)
+.readPassableInfo:
+	move.l d4,d1								; d1 = File
+	move.w (sp),d2								; d0 = tileset to write
+	lsl.l #6,d2									; get offset
+	lea.l Project+Project_TilesetPassable,a0
+	lea.l (a0,d2),a0							; a0 = address of name
+	move.l a0,d2								; d2 = address of name
+	move.l #64,d3								; 64 bytes
+	move.l DosBase,a6
+	jsr _LVORead(a6)
+.closeFile:
+	move.l d4,d1
+	move.l DosBase,a6
+	jsr _LVOClose(a6)
+.done:
+	addq.l #2,sp							; pop off stored d0
+	movem.l (sp)+,d2-d4
+	rts
+****
 * Creates a dummy project in ProjectFilename
 CreateProject:
 	lea.l Project,a0
@@ -648,11 +740,12 @@ HandleTileEditorMsgs:
 	subq.l #1,d0						; did they click save?
 	beq.s .save
 .revert:
+	move.w TileEditor_Num(a3),d0
+	bsr.w RevertTileset
 	bra.s .doClose
 	rts
 .save:
-	move.l a3,a0						; a0 = tile editor
-	move.w TileEditor_Num(a0),d0
+	move.w TileEditor_Num(a3),d0
 	bsr.w SaveTileset
 .doClose:
 	move.l a3,a0						; a0 = tile editor
