@@ -4,7 +4,7 @@
 	INCLUDE "graphics/graphics_lib.i"
 	INCLUDE "intuition/intuition.i"
 	INCLUDE "intuition/intuition_lib.i"
-	
+
 	INCLUDE "bcd_intf.i"
 
 	INCLUDE "globals.i"

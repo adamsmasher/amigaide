@@ -205,6 +205,98 @@ SaveProject:
 	movem.l (sp)+,d2-d4
 	rts
 ****
+* Writes just one tileset to disk
+* d0 - number of the tileset to save
+SaveTileset:
+	movem.l d2-d4,-(sp)
+	move.w d0,-(sp)
+.openFile:
+	move.l #ProjectFilename,d1
+	move.l #MODE_OLDFILE,d2
+	move.l DosBase,a6
+	jsr _LVOOpen(a6)
+	tst.l d0
+	beq.w .done
+	move.l d0,d4								; d4 = File
+.seekToCnt:
+	move.l d4,d1								; d1 = File
+	move.l #4,d2								; skip header
+	move.l #OFFSET_BEGINNING,d3
+	move.l DosBase,a6
+	jsr _LVOSeek(a6)
+.writeCount:
+	move.l d4,d1								; d1 = File
+	move.l #Project+Project_TilesetCnt,d2		; d2 = ptr to Count
+	move.l #2,d3								; d3 = two bytes
+	move.l DosBase,a6
+	jsr _LVOWrite(a6)
+.seekToName:
+	move.l d4,d1								; d1 = File
+	move.w (sp),d2								; d2 = tileset to write
+	and.l #$0000FFFF,d2							; cast to long
+	lsl.l #4,d2									; get offset
+	move.l #OFFSET_CURRENT,d3
+	move.l DosBase,a6
+	jsr _LVOSeek(a6)
+.writeName:
+	move.l d4,d1								; d1 = File
+	move.w (sp),d2								; d0 = tileset to write
+	lsl.l #4,d2									; get offset
+	lea.l Project+Project_TilesetNames,a0
+	lea.l (a0,d2),a0							; a0 = address of name
+	move.l a0,d2								; d2 = address of name
+	move.l #16,d3								; 16 bytes
+	move.l DosBase,a6
+	jsr _LVOWrite(a6)
+.seekToTiles:
+	move.l d4,d1								; d1 = file
+	move.w (sp),d2								; d2 = tileset to write
+	and.l #$0000FFFF,d2							; cast to long
+	lsl.l #8,d2									; get offset
+	lsl.l #4,d2
+	add.l #(4+Project_TilesetImgs),d2			; get offset into file
+	move.l #OFFSET_BEGINNING,d3
+	move.l DosBase,a6
+	jsr _LVOSeek(a6)
+.writeTiles:
+	move.l d4,d1								; d1 = File
+	move.w (sp),d2								; d0 = tileset to write
+	lsl.l #8,d2									; get offset
+	lsl.l #4,d2
+	lea.l Project+Project_TilesetImgs,a0
+	lea.l (a0,d2),a0							; a0 = address of name
+	move.l a0,d2								; d2 = address of name
+	move.l #4096,d3								; 4096 bytes
+	move.l DosBase,a6
+	jsr _LVOWrite(a6)
+.seekToPassableInfo:
+	move.l d4,d1								; d1 = file
+	move.w (sp),d2								; d2 = tileset to write
+	and.l #$0000FFFF,d2							; cast to long
+	lsl.l #6,d2									; get offset
+	add.l #(4+Project_TilesetPassable),d2		; get offset into file
+	move.l #OFFSET_BEGINNING,d3
+	move.l DosBase,a6
+	jsr _LVOSeek(a6)
+.writePassableInfo:
+	move.l d4,d1								; d1 = File
+	move.w (sp),d2								; d0 = tileset to write
+	lsl.l #6,d2									; get offset
+	lea.l Project+Project_TilesetPassable,a0
+	lea.l (a0,d2),a0							; a0 = address of name
+	move.l a0,d2								; d2 = address of name
+	move.l #64,d3								; 64 bytes
+	move.l DosBase,a6
+	jsr _LVOWrite(a6)
+.closeFile:
+	move.l d4,d1
+	move.l DosBase,a6
+	jsr _LVOClose(a6)
+.done:
+	addq.l #2,sp							; pop off stored d0
+	movem.l (sp)+,d2-d4
+	rts
+****
 * Creates a dummy project in ProjectFilename
 CreateProject:
 	lea.l Project,a0
@@ -548,8 +640,24 @@ HandleTileEditorMsgs:
 	bra.s .loop
 .closeWindow:
 	move.l a3,a0						; a0 = tile editor
-	bsr.s RemoveTileEditor
-	move.l TileEditor_Window(a3),a0	; a0 = tile editor window
+	tst.b TileEditor_Unsaved(a0)
+	beq.s .doClose
+	bsr.w ShowTileEditorUnsavedReq
+	tst.l d0							; did they click cancel?
+	beq.s .loop
+	subq.l #1,d0						; did they click save?
+	beq.s .save
+.revert:
+	bra.s .doClose
+	rts
+.save:
+	move.l a3,a0						; a0 = tile editor
+	move.w TileEditor_Num(a0),d0
+	bsr.w SaveTileset
+.doClose:
+	move.l a3,a0						; a0 = tile editor
+	bsr.w RemoveTileEditor
+	move.l TileEditor_Window(a3),a0
 	bsr.w RemWinFromSigMask
 	move.l a3,a0						; a0 = tile editor once more
 	jsr CloseTileEditor
@@ -558,12 +666,12 @@ HandleTileEditorMsgs:
 	move.l im_IAddress(a0),a1			; a1 = gadget clicked
 	move.l a3,a0						; a0 = tile editor
 	jsr TileEditorGadgetUp
-	bra.s .loop
+	bra.w .loop
 .onGadgetDown:
 	move.l im_IAddress(a0),a1
 	move.l a3,a0
 	jsr TileEditorGadgetDown
-	bra.s .loop
+	bra.w .loop
 .onMouseButtons:
 	move.w im_MouseX(a0),d0
 	move.w im_MouseY(a0),d1
@@ -579,6 +687,21 @@ HandleTileEditorMsgs:
 	bra.w .loop
 .done:
 	movem.l (sp)+,d2/a2-a3
+	rts
+****
+* a0 - tile editor to be removed
+ShowTileEditorUnsavedReq:
+	movem.l a2-a4,-(sp)
+	lea.l UnsavedTags,a1
+	move.l TileEditor_Window(a0),4(a1)		; write into Window tag
+	move.l a1,a0							; a0 = taglist
+	lea.l UnsavedBody,a1
+	lea.l UnsavedGadgets,a2
+	move.l #0,a3							; no args
+	move.l #0,a4							; no args
+	move.l ReqBase,a6
+	jsr _LVOrtEZRequestA(a6)
+	movem.l (sp)+,a2-a4
 	rts
 ****
 * a0 - tile editor to be removed
@@ -702,6 +825,22 @@ CloseTilesetBrowserIfOpen:
 	rts
 
 	SECTION MyData,DATA
+******** Unsaved Tileset Requester
+UnsavedBody:
+	dc.b 'There are unsaved changes to',10,'this tileset.',0
+
+UnsavedGadgets:
+	dc.b 'Save|Revert|Cancel',0
+
+UnsavedTitle:
+	dc.b 'Save before closing?',0
+
+	EVEN
+UnsavedTags:
+	dc.l RT_Window, 0
+	dc.l RT_LockWindow,1
+	dc.l RTEZ_ReqTitle,UnsavedTitle
+	dc.l TAG_DONE
 
 IntuiName:
 	dc.b "intuition.library",0
