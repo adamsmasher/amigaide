@@ -846,10 +846,46 @@ SaveAsItemHandler:
 .done:
 	rts
 ****
-QuitItemHandler:
-	move.b #1,QuitFlag
+ShowQuitUnsavedReq:
+	movem.l a2-a4,-(sp)
+	lea.l UnsavedTags,a0
+	move.l ProjWinP,4(a0)
+	lea.l QuitUnsavedBody,a1
+	lea.l QuitUnsavedGadgets,a2
+	move.l #0,a3							; no args
+	move.l #0,a4							; no args
+	move.l ReqBase,a6
+	jsr _LVOrtEZRequestA(a6)
+	movem.l (sp)+,a2-a4
 	rts
 ****
+QuitItemHandler:
+	bsr.s CheckForUnsaved
+	beq.s .quit								; no unsaved
+	bsr.s ShowQuitUnsavedReq
+	tst.l d0
+	beq.s .done								; clicked cancel
+	cmp.l #1,d0
+	bne.s .quit								; clicked don't save
+	bsr.w SaveProject
+.quit:
+	move.b #1,QuitFlag
+.done:
+	rts
+****
+CheckForUnsaved:
+	move.l FirstTileEditor,a0
+	bra.s .next
+.loop:
+	tst.b TileEditor_Unsaved(a0)
+	bne.s .done
+	move.l TileEditor_Next(a0),a0
+.next:
+	cmp.l #0,a0
+	bne.s .loop
+.done:
+	rts
+****	
 * d0 - tileset to spawn for
 SpawnTilesetEditor:
 	jsr NewTileEditor
@@ -922,8 +958,14 @@ CloseTilesetBrowserIfOpen:
 UnsavedBody:
 	dc.b 'There are unsaved changes to',10,'this tileset.',0
 
+QuitUnsavedBody:
+	dc.b 'There are unsaved changes to',10,'one or more tilesets.',0
+
 UnsavedGadgets:
 	dc.b 'Save|Revert|Cancel',0
+
+QuitUnsavedGadgets:
+	dc.b "Save All|Don't Save|Cancel",0
 
 UnsavedTitle:
 	dc.b 'Save before closing?',0
