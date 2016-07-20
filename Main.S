@@ -742,8 +742,11 @@ HandleTileEditorMsgs:
 .revert:
 	move.w TileEditor_Num(a3),d0
 	bsr.w RevertTileset
+	lea.l TilesetBrowser,a0
+	tst.l TilesetBrowser_Window(a0)
+	beq.s .doClose
+	jsr UpdateBrowserListGadgets
 	bra.s .doClose
-	rts
 .save:
 	move.w TileEditor_Num(a3),d0
 	bsr.w SaveTileset
