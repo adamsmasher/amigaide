@@ -125,7 +125,7 @@ HighlightSelectedListGadget:
 	rts	
 ****************
 * a0 - ptr to TilesetBrowser
-UpdateListGadgets:
+UpdateBrowserListGadgets:
 	move.l a0,-(sp)
 	bsr.s RemoveAllListGadgets
 	move.l (sp),a0
@@ -139,6 +139,7 @@ UpdateListGadgets:
 	bsr.s AddAllListGadgets
 	move.l (sp)+,a0
 	bra.w RefreshAllListGadgets
+ XDEF UpdateBrowserListGadgets
 ****************
 * a1 - rport
 InitRPortClear:
@@ -213,7 +214,7 @@ UpdateScroll:
 	cmp.w TilesetBrowser_FirstShown(a0),d0
 	beq.s .updateScrollGadget					; don't redraw if no change
 	move.l (sp),a0
-	bsr.w UpdateListGadgets
+	bsr.w UpdateBrowserListGadgets
 .updateScrollGadget:
 	move.l (sp)+,a0
 	move.w (sp)+,d0

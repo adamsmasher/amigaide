@@ -722,13 +722,13 @@ HandleTileEditorMsgs:
 	cmp.l #IDCMP_CLOSEWINDOW,d0
 	beq.s .closeWindow
 	cmp.l #IDCMP_GADGETUP,d0
-	beq.s .onGadgetUp
+	beq.w .onGadgetUp
 	cmp.l #IDCMP_GADGETDOWN,d0
-	beq.s .onGadgetDown
+	beq.w .onGadgetDown
 	cmp.l #IDCMP_MOUSEBUTTONS,d0
-	beq.s .onMouseButtons
+	beq.w .onMouseButtons
 	cmp.l #IDCMP_MOUSEMOVE,d0
-	beq.s .onMouseMove
+	beq.w .onMouseMove
 	bra.s .loop
 .closeWindow:
 	move.l a3,a0						; a0 = tile editor
@@ -754,11 +754,20 @@ HandleTileEditorMsgs:
 	bsr.w RemWinFromSigMask
 	move.l a3,a0						; a0 = tile editor once more
 	jsr CloseTileEditor
-	bra.s .loop
+	bra.w .loop
 .onGadgetUp:
 	move.l im_IAddress(a0),a1			; a1 = gadget clicked
+	move.l a1,-(sp)
 	move.l a3,a0						; a0 = tile editor
 	jsr TileEditorGadgetUp
+; quick and easy hack
+	move.l (sp)+,a0						; a0 = gadget clicked
+	cmp.w #$800,gg_GadgetID(a0)			; was this the name?
+	bne.w .loop
+	lea.l TilesetBrowser,a0
+	tst.l TilesetBrowser_Window(a0)
+	beq.w .loop
+	jsr UpdateBrowserListGadgets
 	bra.w .loop
 .onGadgetDown:
 	move.l im_IAddress(a0),a1
@@ -942,6 +951,12 @@ NewTilesetItemHandler:
 	bsr.s SpawnTilesetEditor
 ; TODO: add a test to make sure this succeeded before doing this
 	addq.w #1,Project+Project_TilesetCnt
+.refreshBrowser:
+	lea.l TilesetBrowser,a0
+	tst.l TilesetBrowser_Window(a0)
+	beq.s .done
+	jsr UpdateBrowserListGadgets
+.done:
 	rts
 ****
 OpenTilesetItemHandler:
