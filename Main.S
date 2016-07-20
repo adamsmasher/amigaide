@@ -960,26 +960,31 @@ OpenTilesetItemHandler:
 	jmp _LVOActivateWindow(a6)
 ****
 CloseTileEditors:
-	move.l d2,-(sp)
-	move.l FirstTileEditor,d2
+	move.l a2,-(sp)
+	move.l FirstTileEditor,a2
 	bra.s .test
 .loop:
-	move.l d2,a0
-	move.l TileEditor_Next(a0),d2
-	bsr.w CloseTileEditor
+	move.l TileEditor_Window(a2),a0
+	bsr.w RemWinFromSigMask
+	move.l a2,a0						; a0 = tile editor once more
+; NOTE: this has to be done before the call to CloseTileEditor, which
+; frees the memory
+	move.l TileEditor_Next(a2),a2
+	jsr CloseTileEditor
 .test:
-	tst.l d2
+	cmp.l #0,a2
 	bne.s .loop
-	move.l (sp)+,d2
+	clr.l FirstTileEditor
+	move.l (sp)+,a2
 	rts
 ****************
 CloseTilesetBrowserIfOpen:
 	move.l TilesetBrowser+TilesetBrowser_Window,d0
-	tst.l d0
 	beq.s .done
 	move.l d0,a0
-	move.l IntuiBase,a6
-	jmp _LVOCloseWindow(a6)
+	bsr.w RemWinFromSigMask
+	lea.l TilesetBrowser,a0
+	jmp CloseTilesetBrowser
 .done:
 	rts
 
