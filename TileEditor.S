@@ -304,6 +304,13 @@ RedrawTitle:
 	rts
 ****************
 * a0 - ptr to tile editor
+SetTileEditorSaved:
+	move.b #0,TileEditor_Unsaved(a0)
+	move.b #0,TileEditor_Title+10(a0)
+	bra.s RedrawTitle
+ XDEF SetTileEditorSaved
+****************
+* a0 - ptr to tile editor
 SetUnsaved:
 	move.b #1,TileEditor_Unsaved(a0)
 	move.b #'*',TileEditor_Title+10(a0)

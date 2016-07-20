@@ -832,18 +832,33 @@ HandleMenu:
 	jmp (a0)				; jump to routine
 ****
 NewItemHandler:
+	; TODO: implement me
 	rts
 ****
 SaveItemHandler:
-	; TODO: update unsaved status on Editors
-	bra.w SaveProject
+	bsr.w SaveProject
+	bra.s MarkAllSaved
 ****
 SaveAsItemHandler:
 	bsr.w SelectProject
 	beq.s .done
-	bra.w SaveProject
-	; TODO: update unsaved status on Editors
+	bsr.w SaveProject
+	bra.s MarkAllSaved
 .done:
+	rts
+****
+MarkAllSaved:
+	move.l a2,-(sp)
+	move.l FirstTileEditor,a2
+	bra.s .next
+.loop:
+	move.l a2,a0
+	jsr SetTileEditorSaved
+	move.l TileEditor_Next(a2),a2
+.next:
+	cmp.l #0,a2
+	bne.s .loop
+	move.l (sp)+,a2
 	rts
 ****
 ShowQuitUnsavedReq:
