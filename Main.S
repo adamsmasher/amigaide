@@ -832,7 +832,22 @@ HandleMenu:
 	jmp (a0)				; jump to routine
 ****
 NewItemHandler:
-	; TODO: implement me
+	bsr.w CheckForUnsaved
+	beq.s .new								; no unsaved
+	bsr.s ShowQuitUnsavedReq
+	tst.l d0
+	beq.s .done								; clicked cancel
+	cmp.l #1,d0
+	bne.s .new								; clicked don't save
+	bsr.w SaveProject
+	bsr.s MarkAllSaved
+.new:
+	bsr.w SelectProject
+	beq.s .done
+	bsr.w CloseTileEditors
+	bsr.w CloseTilesetBrowserIfOpen
+	bsr.w CreateProject						; init a new project
+.done:
 	rts
 ****
 SaveItemHandler:
