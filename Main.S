@@ -1063,7 +1063,7 @@ ScrDef:
 	dc.w 0,0					; left,top
 	dc.w SCR_WIDTH,SCR_HEIGHT	; width/height
 	dc.w 2						; bits per pixel
-	dc.b 0,1					; default pens
+	dc.b 0,3					; default pens
 	dc.w 0						; lo res view mode
 	dc.w SHOWTITLE
 	dc.l 0						; default font
