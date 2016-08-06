@@ -846,7 +846,7 @@ HandleMenu:
 NewItemHandler:
 	bsr.w CheckForUnsaved
 	beq.s .new								; no unsaved
-	bsr.s ShowQuitUnsavedReq
+	bsr.w ShowQuitUnsavedReq
 	tst.l d0
 	beq.s .done								; clicked cancel
 	cmp.l #1,d0
@@ -859,6 +859,25 @@ NewItemHandler:
 	bsr.w CloseTileEditors
 	bsr.w CloseTilesetBrowserIfOpen
 	bsr.w CreateProject						; init a new project
+.done:
+	rts
+****
+OpenItemHandler:
+	bsr.w CheckForUnsaved
+	beq.s .doOpen							; no unsaved
+	bsr.s ShowQuitUnsavedReq
+	tst.l d0
+	beq.s .done								; clicked cancel
+	cmp.l #1,d0
+	bne.s .doOpen							; clicked don't save
+	bsr.w SaveProject
+.doOpen:
+	bsr.w SelectProject
+	beq.s .done
+	bsr.w LoadProject
+; TODO: handle failure case!
+	bsr.w CloseTileEditors
+	bsr.w CloseTilesetBrowserIfOpen
 .done:
 	rts
 ****
@@ -1139,6 +1158,19 @@ NewTxt:
 	dc.l NewStr
 	dc.l 0
 
+OpenStr:
+	dc.b "Open...",0
+	
+	EVEN
+OpenTxt:
+	dc.b 0,0
+	dc.b 0
+	dc.b 0
+	dc.w 0,0
+	dc.l 0
+	dc.l OpenStr
+	dc.l 0
+
 SaveStr:
 	dc.b "Save",0
 	
@@ -1184,7 +1216,7 @@ ExitTxt:
 
 	EVEN
 NewMenuItem:
-	dc.l SaveMenuItem
+	dc.l OpenMenuItem
 	dc.w 0,0
 	dc.w 120,10
 	dc.w ITEMTEXT!COMMSEQ!ITEMENABLED!HIGHCOMP
@@ -1197,9 +1229,23 @@ NewMenuItem:
 	dc.w 0
 
 	EVEN
+OpenMenuItem:
+	dc.l SaveMenuItem
+	dc.w 0,12
+	dc.w 120,10			; width, height
+	dc.w ITEMTEXT!COMMSEQ!ITEMENABLED!HIGHCOMP
+	dc.l 0
+	dc.l OpenTxt
+	dc.l 0
+	dc.b 'O'
+	dc.b 0
+	dc.l 0
+	dc.w 0
+
+	EVEN
 SaveMenuItem:
 	dc.l SaveAsMenuItem
-	dc.w 0,12
+	dc.w 0,24
 	dc.w 120,10			; width, height
 	dc.w ITEMTEXT!COMMSEQ!ITEMENABLED!HIGHCOMP
 	dc.l 0
@@ -1213,7 +1259,7 @@ SaveMenuItem:
 	EVEN
 SaveAsMenuItem:
 	dc.l ExitMenuItem
-	dc.w 0,24
+	dc.w 0,36
 	dc.w 120,10
 	dc.w ITEMTEXT!COMMSEQ!ITEMENABLED!HIGHCOMP
 	dc.l 0
@@ -1227,7 +1273,7 @@ SaveAsMenuItem:
 	EVEN
 ExitMenuItem:
 	dc.l 0				; next item
-	dc.w 0,36			; left, top
+	dc.w 0,48			; left, top
 	dc.w 120,10			; width, height
 ; flags
 	dc.w ITEMTEXT!COMMSEQ!ITEMENABLED!HIGHCOMP
@@ -1298,8 +1344,8 @@ MenuHandlers:
 	dc.l ProjMenuHandlers,TilesetsMenuHandlers
 
 ProjMenuHandlers:
-	dc.l NewItemHandler,SaveItemHandler,SaveAsItemHandler
-	dc.l QuitItemHandler
+	dc.l NewItemHandler,OpenItemHandler,SaveItemHandler
+	dc.l SaveAsItemHandler,QuitItemHandler
 
 TilesetsMenuHandlers:
 	dc.l NewTilesetItemHandler,OpenTilesetItemHandler
